@@ -4,8 +4,8 @@
 ## 🚀 Our Team: Team Prometheus
 We are a dedicated two-member developer team pushing personal and technical limits to build impactful, low-level space data and computing solutions for the **NASA Space Apps Challenge 2026**. 
 
-* **Diwakar** — Core Systems, Backend Architecture & Software Engineering
-* **Swapnil** — Core Collaborator & Project Partner
+* **Diwakar** — Core Systems, Backend Architecture & Software Engineering.
+* **Swapnil** — Core Collaborator & Project Partner with same functionality.
 
 Driven by an ambition to master complex engineering, deep algorithmic decision-making frameworks, and geo-technical innovation, our mission is to build highly optimized technology designed to solve real-world and astronomical challenges.
 
