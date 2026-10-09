@@ -1,5 +1,5 @@
-# 💫 About Me:
-Working together <br>Official Repository of Team Prometheus.<br>•NASA SPACE APP CHALLENGE 2026
+# 💫 About Us:
+ WORKING TOGETHER!!!! <br>Official Repository of Team Prometheus.<br>•NASA SPACE APP CHALLENGE 2026
 
 ## 🚀 Our Team: Team Prometheus
 We are a dedicated two-member developer team pushing personal and technical limits to build impactful, low-level space data and computing solutions for the **NASA Space Apps Challenge 2026**. 
