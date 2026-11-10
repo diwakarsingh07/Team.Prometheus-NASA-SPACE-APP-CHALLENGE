@@ -3,536 +3,584 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPHEREx Discovery Engine | Time-Domain Astronomical Survey</title>
-  <meta name="description" content="NASA SPHEREx 102-Band Multi-Epoch Sky Discovery Engine for Citizen Science, Moving Objects & Variable Star Tracking">
-  
-  <!-- Modern Inter & JetBrains Mono Fonts -->
+  <title>Team Prometheus — The Hunt for Planet X | SPHEREx</title>
+  <meta name="description" content="An Awwwards-caliber scroll-driven cinematic experience. Descend to the Moon, open the discovery terminal, and hunt for Planet X across 102 infrared bands.">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Lucide Vector Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <!-- Chart.js CDN for High-Performance 102-Band SED Graphing -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <link rel="stylesheet" href="landing.css">
 </head>
-<body class="app-body">
+<body>
 
-  <!-- Top Mission Control Navigation Bar -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="brand-badge">
-        <i data-lucide="scan" class="brand-icon"></i>
+  <!-- ============================================================ -->
+  <!-- PRELOADER (3D Rocket Assembly & Blastoff 240fps Canvas)      -->
+  <!-- ============================================================ -->
+  <div id="preloader" class="preloader">
+    <canvas id="loader-canvas" class="loader-canvas"></canvas>
+    <div class="loader-vignette"></div>
+
+    <!-- Top Mission Telemetry Bar -->
+    <div class="pre-hud-top">
+      <div class="pre-brand">
+        <span class="pre-dot"></span>
+        <span class="pre-label">TEAM PROMETHEUS &bull; SPHEREx MISSION</span>
       </div>
-      <div class="brand-meta">
-        <div class="brand-title-wrap">
-          <h1 class="brand-title">SPHEREx Discovery Engine</h1>
-          <span class="mission-tag">NASA QR2 LEVEL-2</span>
-          <span class="citizen-tag"><i data-lucide="users" class="inline-icon"></i> CITIZEN SCIENCE</span>
+      <div class="pre-mission-chips">
+        <span class="pre-chip"><span class="chip-k">STATUS</span><b id="pre-stage-chip" class="chip-v">ASSEMBLING</b></span>
+        <span class="pre-chip"><span class="chip-k">ORBIT</span><b class="chip-v">LEO 700KM POLAR</b></span>
+        <span class="pre-chip"><span class="chip-k">FPS</span><b class="chip-v chip-cyan">240 FPS+ BLEND</b></span>
+      </div>
+      <button id="pre-skip" class="pre-skip-btn" type="button" title="Skip Launch [ESC]">
+        <span>SKIP LAUNCH</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Bottom Mission Dock -->
+    <div class="pre-bottom-dock">
+      <div class="pre-status-line">
+        <div class="pre-status-badge">
+          <span class="badge-pulse"></span>
+          <span id="pre-stage-text">STAGE 1: SYSTEM INITIATION &amp; SCHEMATIC EXPANSION</span>
         </div>
-        <p class="brand-sub">All-Sky Multi-Epoch Comparator, 102-Band Slicer & Moving Object Hunter</p>
+        <div class="pre-fps-badge">240Hz SUB-FRAME LERP</div>
+      </div>
+      <div class="pre-track"><div id="pre-fill" class="pre-fill"></div></div>
+      <div class="pre-row">
+        <span id="pre-hint" class="pre-hint">DOWNLOADING DEEP SPACE TELEMETRY &bull; 120 MISSION FRAMES</span>
+        <div class="pre-pct-wrap">
+          <span id="pre-pct" class="pre-pct">0</span><span class="pre-pct-unit">%</span>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Live Telemetry Coordinates HUD -->
-    <div class="header-telemetry font-mono">
-      <div class="hud-item">
-        <span class="hud-label">TARGET:</span>
-        <span id="hud-field-name" class="hud-val text-cyan">Barnard's Star</span>
-      </div>
-      <div class="hud-sep"></div>
-      <div class="hud-item">
-        <span class="hud-label">RA/DEC:</span>
-        <span id="hud-coords" class="hud-val text-slate">17h 57m 48.5s | +04° 41' 36"</span>
-      </div>
-      <div class="hud-sep"></div>
-      <div class="hud-item">
-        <span class="hud-label">CADENCE:</span>
-        <span class="hud-val text-amber">6-Mo Baseline (Δt=182.5d)</span>
-      </div>
-      <div class="hud-sep"></div>
-      <div class="hud-item">
-        <span class="hud-label">FLAGS:</span>
-        <span id="hud-quality-flag" class="hud-val text-emerald">QUAL_OK (0x00)</span>
-      </div>
+  <!-- ============================================================ -->
+  <!-- CUSTOM CURSOR                                                 -->
+  <!-- ============================================================ -->
+  <div id="cur" class="cur"></div>
+  <div id="cur-ring" class="cur-ring"></div>
+
+  <!-- ============================================================ -->
+  <!-- FIXED CANVAS (image-sequence scrub)                           -->
+  <!-- ============================================================ -->
+  <canvas id="seq-canvas"></canvas>
+
+  <!-- ============================================================ -->
+  <!-- FIXED NAV                                                     -->
+  <!-- ============================================================ -->
+  <header id="nav" class="nav">
+    <div class="nav-left">
+      <span class="nav-dot"></span>
+      <span class="nav-brand">PROMETHEUS</span>
+      <span class="nav-chip">NASA SPACE APPS 2026</span>
     </div>
-
-    <!-- Header Actions -->
-    <div class="header-right">
-      <button id="btn-3d-story" class="btn btn-secondary" onclick="window.location.href='landing.html'" title="Return to 3D Scrollytelling Journey & Layman Mode">
-        <i data-lucide="sparkles"></i>
-        <span>3D Story</span>
-      </button>
-      <button id="btn-share-url" class="btn btn-secondary" title="Copy Direct Coordinate URL to Clipboard">
-        <i data-lucide="link"></i>
-        <span>Share URL</span>
-      </button>
-      <button id="btn-export-dossier" class="btn btn-primary" title="Export Certified Discovery Dossier (JSON)">
-        <i data-lucide="file-down"></i>
-        <span>Export Report</span>
-      </button>
+    <nav class="nav-links">
+      <a href="#sec-team">Team</a>
+      <a href="#sec-how-built">How We Built</a>
+      <a href="#act-challenge">Challenge</a>
+      <a href="#sec-resources">Resources Used</a>
+      <a href="#sec-contact" class="nav-hl">Contact Us</a>
+    </nav>
+    <div class="nav-right">
+      <button id="btn-sound" class="nav-icon" title="Sound"><i data-lucide="volume-x"></i></button>
+      <a href="index.html" class="nav-cta">Console →</a>
     </div>
   </header>
 
-  <!-- Main Three-Column CSS Grid Workspace -->
-  <div class="workspace-grid">
-
-    <!-- ================================================================= -->
-    <!-- LEFT COLUMN (20%): CONTROL SUITE & ASTRONOMICAL FILTERS           -->
-    <!-- ================================================================= -->
-    <aside class="sidebar-left">
-      
-      <!-- Coordinate Search Suite (RA / Dec Query) -->
-      <section class="control-panel highlight-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="search" class="panel-icon text-cyan"></i>
-            <span class="panel-label text-cyan">Coordinate Query</span>
-          </div>
-          <span class="url-badge font-mono">URL SYNC</span>
-        </div>
-        <p class="panel-caption">
-          Search any sky patch by Right Ascension and Declination:
-        </p>
-        <div class="coord-input-grid font-mono">
-          <div class="input-field">
-            <label for="input-ra" class="input-label">RA (hms / deg)</label>
-            <input type="text" id="input-ra" class="form-input" placeholder="e.g. 17h57m48.5s">
-          </div>
-          <div class="input-field">
-            <label for="input-dec" class="input-label">Dec (dms / deg)</label>
-            <input type="text" id="input-dec" class="form-input" placeholder="e.g. +04d41m36s">
-          </div>
-        </div>
-        <button id="btn-query-coords" class="btn btn-query">
-          <i data-lucide="crosshair"></i>
-          <span>Locate Sky Patch</span>
-        </button>
-      </section>
-
-      <!-- NASA Benchmark Test Targets (NASA Challenge Requirement) -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="compass" class="panel-icon"></i>
-            <label for="sky-tile-select" class="panel-label">Benchmark Targets</label>
-          </div>
-          <span class="target-badge font-mono">NASA TEST SUITE</span>
-        </div>
-        <div class="custom-select-wrap">
-          <select id="sky-tile-select" class="form-select font-mono">
-            <optgroup label="NASA Challenge Benchmark Targets">
-              <option value="barnard" selected>🌟 Barnard's Star (Record Proper Motion)</option>
-              <option value="epsilonIndi">🌟 Epsilon Indi B (Binary Brown Dwarfs)</option>
-              <option value="wise0855">🌟 WISE 0855-0714 (Coldest Sub-stellar Dwarf)</option>
-              <option value="rwAurigae">🌟 RW Aurigae (T Tauri Variable Star)</option>
-              <option value="rDraconis">🌟 R Draconis (Mira-type Pulsating Variable)</option>
-            </optgroup>
-            <optgroup label="Outer Solar System & Real FITS">
-              <option value="realSpherex">📁 SPHEREx QR2 FITS (2026W08_2A_0157_1)</option>
-              <option value="planetX">🪐 Planet X Candidate (SPX-2026-X1)</option>
-              <option value="sedna">☄️ 90377 Sedna (Detached Outer Kuiper Body)</option>
-            </optgroup>
-          </select>
-        </div>
-      </section>
-
-      <!-- Field of View (FOV) Selector -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="zoom-in" class="panel-icon"></i>
-            <span class="panel-label">Field of View (FOV)</span>
-          </div>
-          <span id="fov-readout" class="stretch-badge font-mono">15' (Standard)</span>
-        </div>
-        <div class="fov-button-group font-mono">
-          <button class="btn-fov" data-fov="5">5' <small>(Fine)</small></button>
-          <button class="btn-fov active" data-fov="15">15' <small>(Std)</small></button>
-          <button class="btn-fov" data-fov="30">30' <small>(Wide)</small></button>
-          <button class="btn-fov" data-fov="60">60' <small>(Survey)</small></button>
-        </div>
-        <p class="panel-caption">
-          Wide FOV tracks fast solar system comets; narrow FOV resolves close brown dwarf binaries.
-        </p>
-      </section>
-
-      <!-- Comparison Engine Modes (6 Methods: Blink, Subtract, Swipe, RGB, Dissolve, Coadd) -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="layers" class="panel-icon text-cyan"></i>
-            <span class="panel-label">Comparison Methods</span>
-          </div>
-          <span class="url-badge font-mono">6 MODES</span>
-        </div>
-        
-        <div class="mode-button-group comparison-modes-grid">
-          <button id="btn-mode-blink" class="btn-mode active" data-mode="blink" title="Blink: alternates epochs like Clyde Tombaugh">
-            <i data-lucide="play" class="btn-mode-icon"></i>
-            <span>Blink</span>
-          </button>
-          <button id="btn-mode-diff" class="btn-mode" data-mode="diff" title="Subtract: E2 - E1 isolates motion into a dipole">
-            <i data-lucide="sparkles" class="btn-mode-icon"></i>
-            <span>Subtract</span>
-          </button>
-          <button id="btn-mode-swipe" class="btn-mode" data-mode="swipe" title="Swipe: interactive split curtain wipe slider">
-            <i data-lucide="split" class="btn-mode-icon"></i>
-            <span>Swipe</span>
-          </button>
-          <button id="btn-mode-rgb" class="btn-mode" data-mode="rgb" title="RGB Anaglyph: E1=Red, E2=Cyan; moving objects pop in neon colors">
-            <i data-lucide="palette" class="btn-mode-icon"></i>
-            <span>RGB Color</span>
-          </button>
-          <button id="btn-mode-fade" class="btn-mode" data-mode="fade" title="Dissolve: smooth manual alpha cross-fade">
-            <i data-lucide="sun-medium" class="btn-mode-icon"></i>
-            <span>Dissolve</span>
-          </button>
-          <button id="btn-mode-stack" class="btn-mode" data-mode="stack" title="Add / Coadd: stacks epochs to boost signal-to-noise">
-            <i data-lucide="plus-circle" class="btn-mode-icon"></i>
-            <span>Coadd</span>
-          </button>
-        </div>
-
-        <!-- 1. Dynamic Blink Rate Slider -->
-        <div id="blink-controls" class="sub-control-block">
-          <div class="slider-meta font-mono">
-            <span>Flip Period (Video Cadence):</span>
-            <span id="blink-rate-display" class="slider-val text-cyan">0.50 s</span>
-          </div>
-          <input type="range" id="blink-rate-slider" min="150" max="1500" value="500" step="50" class="custom-slider">
-          <div class="slider-ticks font-mono">
-            <span>0.15s (Rapid)</span>
-            <span>0.50s (Std)</span>
-            <span>1.50s (Slow)</span>
-          </div>
-        </div>
-
-        <!-- 2. Interactive Swipe Curtain Slider -->
-        <div id="swipe-controls" class="sub-control-block hidden">
-          <div class="slider-meta font-mono">
-            <span>Curtain Wipe Position:</span>
-            <span id="swipe-pos-display" class="slider-val text-cyan">50%</span>
-          </div>
-          <input type="range" id="swipe-slider" min="0" max="100" value="50" class="custom-slider">
-          <div class="slider-ticks font-mono">
-            <span>100% E1 (Left)</span>
-            <span>50/50 Split</span>
-            <span>100% E2 (Right)</span>
-          </div>
-          <p class="panel-caption font-sans">
-            Tip: Drag the slider or click &amp; drag directly across the canvas to wipe between epochs.
-          </p>
-        </div>
-
-        <!-- 3. Manual Dissolve / Cross-fade Slider -->
-        <div id="fade-controls" class="sub-control-block hidden">
-          <div class="slider-meta font-mono">
-            <span>Epoch Alpha Dissolve:</span>
-            <span id="fade-pos-display" class="slider-val text-cyan">50% E1 / 50% E2</span>
-          </div>
-          <input type="range" id="fade-slider" min="0" max="100" value="50" class="custom-slider">
-          <div class="slider-ticks font-mono">
-            <span>0% (Epoch 1)</span>
-            <span>50% Blend</span>
-            <span>100% (Epoch 2)</span>
-          </div>
-        </div>
-
-        <!-- 4. RGB Anaglyph Legend -->
-        <div id="rgb-controls" class="sub-control-block hidden">
-          <div class="anaglyph-legend font-mono">
-            <span class="legend-item"><span class="legend-dot red"></span> Red: E1</span>
-            <span class="legend-item"><span class="legend-dot cyan"></span> Cyan: E2</span>
-            <span class="legend-item"><span class="legend-dot white"></span> White: Static</span>
-          </div>
-          <p class="panel-caption font-sans">
-            Stationary sources combine into white; moving candidates pop into vivid paired Red &amp; Cyan beacons!
-          </p>
-        </div>
-      </section>
-
-      <!-- Survey Mission Overlays (Gaia & WISE Multi-Mission Cross-Matching) -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="globe" class="panel-icon text-indigo"></i>
-            <span class="panel-label">Multi-Mission Overlays</span>
-          </div>
-          <span class="mission-pill font-mono">CDS / ESA</span>
-        </div>
-        <div class="overlay-toggles font-mono">
-          <label class="toggle-row">
-            <input type="checkbox" id="overlay-gaia" class="custom-checkbox">
-            <span>Gaia DR3 Proper-Motion Vectors</span>
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="overlay-wise" class="custom-checkbox">
-            <span>NASA allWISE IR Contour Reference</span>
-          </label>
-          <label class="toggle-row">
-            <input type="checkbox" id="overlay-reticle" class="custom-checkbox" checked>
-            <span>Astrometric Target Reticle</span>
-          </label>
-        </div>
-      </section>
-
-      <!-- 6-Detector Array Coaddition (NASA Consideration: Boost S/N) -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="cpu" class="panel-icon text-amber"></i>
-            <span class="panel-label">6 Detector Arrays Coadd</span>
-          </div>
-          <span id="coadd-status" class="detector-badge font-mono">6 ARRAYS SUMMED</span>
-        </div>
-        <div class="detector-chips font-mono">
-          <span class="chip active">Det 1 <small>(SWIR)</small></span>
-          <span class="chip active">Det 2 <small>(SWIR)</small></span>
-          <span class="chip active">Det 3 <small>(SWIR)</small></span>
-          <span class="chip active">Det 4 <small>(MWIR)</small></span>
-          <span class="chip active">Det 5 <small>(MWIR)</small></span>
-          <span class="chip active">Det 6 <small>(MWIR)</small></span>
-        </div>
-        <p class="panel-caption">
-          Coadds flux across all 6 detector focal arrays, improving point-source S/N by up to 2.4× (√6).
-        </p>
-      </section>
-
-      <!-- FITS Histogram Stretch & Dynamic Range Filters -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="sliders" class="panel-icon"></i>
-            <span class="panel-label">Histogram Stretch</span>
-          </div>
-          <span class="stretch-badge font-mono">Asinh / ZScale</span>
-        </div>
-
-        <div class="sub-control-block">
-          <div class="slider-meta font-mono">
-            <span>Black Point (Cut-off):</span>
-            <span id="black-cut-val" class="slider-val">12%</span>
-          </div>
-          <input type="range" id="black-cut-slider" min="0" max="45" value="12" class="custom-slider">
-        </div>
-
-        <div class="sub-control-block">
-          <div class="slider-meta font-mono">
-            <span>White Point (Peak):</span>
-            <span id="white-cut-val" class="slider-val">88%</span>
-          </div>
-          <input type="range" id="white-cut-slider" min="50" max="100" value="88" class="custom-slider">
-        </div>
-
-        <div class="checkbox-row">
-          <label for="check-invert" class="checkbox-label">Invert Grayscale (Astronomical Negative)</label>
-          <input type="checkbox" id="check-invert" class="custom-checkbox">
-        </div>
-      </section>
-
-      <!-- S/N Threshold Detection Gate -->
-      <section class="control-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="shield-alert" class="panel-icon"></i>
-            <span class="panel-label">S/N Threshold Gate</span>
-          </div>
-          <span id="sn-threshold-val" class="sn-badge font-mono">3.5σ</span>
-        </div>
-        <input type="range" id="sn-threshold-slider" min="1.0" max="8.0" step="0.5" value="3.5" class="custom-slider">
-      </section>
-
-      <!-- Citizen Science Candidate Tagging -->
-      <section class="control-panel action-panel">
-        <button id="btn-tag-candidate" class="btn btn-tag">
-          <i data-lucide="bookmark-plus"></i>
-          <span>Tag Shifting Candidate</span>
-        </button>
-
-        <div class="discovery-ledger font-mono">
-          <div class="ledger-row">
-            <span>Flagged Discoveries:</span>
-            <span id="ledger-flagged-count" class="text-cyan font-bold">0</span>
-          </div>
-          <div class="ledger-row">
-            <span>Target Motion:</span>
-            <span id="ledger-drift-rate" class="text-amber font-bold">10.37 "/yr</span>
-          </div>
-        </div>
-      </section>
-
-    </aside>
-
-    <!-- ================================================================= -->
-    <!-- CENTER COLUMN (50%): CELESTIAL CANVAS & COMPARATOR VIEWPORT       -->
-    <!-- ================================================================= -->
-    <main class="viewport-center">
-      
-      <!-- Top Image Viewport Coordinates & Status Bar -->
-      <div class="viewport-hud font-mono">
-        <div class="hud-cluster">
-          <span class="hud-status-dot pulse-animation"></span>
-          <span id="viewport-epoch-title" class="hud-epoch-text text-cyan">EPOCH 1 (2025-A BASELINE)</span>
-          <span class="hud-pipe">|</span>
-          <span id="viewport-fov-title" class="text-slate-muted">FOV: 15' × 15'</span>
-          <span class="hud-pipe">|</span>
-          <span id="viewport-meta-flags" class="meta-tag">FLAG: 0x00 (UNCONTAMINATED)</span>
-        </div>
-
-        <div class="hud-cluster">
-          <span class="text-slate-muted">CURSOR:</span>
-          <span id="cursor-pos-readout" class="text-slate font-bold">[X: --, Y: --]</span>
-          <span class="text-slate-muted">FLUX:</span>
-          <span id="cursor-flux-readout" class="text-amber font-bold">-- MJy/sr</span>
-        </div>
-      </div>
-
-      <!-- Astronomical Canvas Container -->
-      <div class="canvas-stage" id="canvas-stage">
-        <canvas id="astronomical-canvas" width="512" height="512" class="astronomical-canvas"></canvas>
-
-        <!-- Dynamic Candidate Reticle Overlay -->
-        <div id="target-reticle" class="target-reticle hidden">
-          <div class="reticle-ring-outer"></div>
-          <div class="reticle-ring-inner"></div>
-          <div class="reticle-crosshair-h"></div>
-          <div class="reticle-crosshair-v"></div>
-          <div id="reticle-tag" class="reticle-callout font-mono">
-            Candidate Target
-          </div>
-        </div>
-
-        <!-- Mode Indicator Badge -->
-        <div id="diff-indicator-badge" class="diff-badge font-mono hidden">
-          <i data-lucide="diff" class="diff-badge-icon"></i>
-          <span id="diff-badge-text">PIXEL SUBTRACTION: ΔI = (EPOCH 2 − EPOCH 1)</span>
-        </div>
-      </div>
-
-    </main>
-
-    <!-- ================================================================= -->
-    <!-- RIGHT COLUMN (30%): CANDIDATE TELEMETRY & 102-BAND SED CHART       -->
-    <!-- ================================================================= -->
-    <aside class="sidebar-right">
-      
-      <!-- Target Dossier Details Panel -->
-      <section class="telemetry-panel">
-        <div class="panel-header justify-between border-bottom">
-          <div class="flex items-center gap-2">
-            <i data-lucide="activity" class="panel-icon text-cyan"></i>
-            <h2 class="telemetry-title">Candidate Telemetry</h2>
-          </div>
-          <span id="telemetry-class-badge" class="class-badge font-mono">
-            HIGH PROPER-MOTION STAR
-          </span>
-        </div>
-
-        <div class="telemetry-grid font-mono">
-          <div class="telemetry-card">
-            <span class="telemetry-k">Target Name / ID</span>
-            <span id="tel-id" class="telemetry-v text-white">Barnard's Star (GJ 699)</span>
-          </div>
-          <div class="telemetry-card">
-            <span class="telemetry-k">Equatorial Coordinates</span>
-            <span id="tel-coords" class="telemetry-v text-slate">17h 57m 48.5s | +04° 41' 36"</span>
-          </div>
-          <div class="telemetry-card">
-            <span class="telemetry-k">Proper Motion (μ)</span>
-            <span id="tel-motion" class="telemetry-v text-amber font-bold">10.37 arcsec / yr</span>
-          </div>
-          <div class="telemetry-card">
-            <span class="telemetry-k">Heliocentric Distance</span>
-            <span id="tel-dist" class="telemetry-v text-cyan font-bold">5.96 Light Years</span>
-          </div>
-          <div class="telemetry-card full-width">
-            <span class="telemetry-k">Time-Baseline Coordinate Shift</span>
-            <span id="tel-shift" class="telemetry-v text-white font-bold">5.18 arcsec / 0.5 yr (10.4 px)</span>
-          </div>
-          <div class="telemetry-card full-width">
-            <span class="telemetry-k">Quality & Contamination Flags</span>
-            <span id="tel-flags" class="telemetry-v text-emerald font-mono">0x00: Clean Point Source (No Zodi or Moon Glare)</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- 102-Band Spectral Energy Distribution (SED) Chart Panel -->
-      <section class="sed-chart-panel">
-        <div class="panel-header justify-between">
-          <div class="flex items-center gap-1.5">
-            <i data-lucide="bar-chart-2" class="panel-icon text-amber"></i>
-            <span class="panel-label">102-Band SED Extracted Spectrum</span>
-          </div>
-          <span id="sed-feature-pill" class="feature-pill font-mono">
-            M4V Cold Photosphere
-          </span>
-        </div>
-
-        <!-- Chart.js Canvas Host -->
-        <div class="chart-canvas-wrapper">
-          <canvas id="sed-chart-canvas"></canvas>
-        </div>
-
-        <p class="chart-caption font-sans">
-          Generated on-the-fly across SPHEREx's 102 near-IR channels (0.75 – 5.00 µm). Shows diagnostic absorption signatures (CH4, H2O, CO) or variability amplitude.
-        </p>
-      </section>
-
-      <!-- Astrophysical Validation Summary -->
-      <section class="validation-panel">
-        <div class="flex items-center gap-1.5 mb-1">
-          <i data-lucide="check-circle-2" class="panel-icon text-emerald"></i>
-          <span class="panel-label">NASA Target Verification & History</span>
-        </div>
-        <p id="validation-report-text" class="validation-body font-sans">
-          Fastest proper-motion star in the night sky. Discovered in 1916 by E.E. Barnard using early photographic blink comparison plates. SPHEREx resolves its near-infrared molecular band profile with zero stellar flare contamination.
-        </p>
-      </section>
-
-    </aside>
-
+  <!-- ============================================================ -->
+  <!-- FIXED TELEMETRY HUD                                           -->
+  <!-- ============================================================ -->
+  <div id="hud" class="hud">
+    <div class="hud-g"><span class="hud-l">ALT</span><span id="h-alt" class="hud-v v-cyan">384,400 KM</span></div>
+    <div class="hud-g"><span class="hud-l">VEL</span><span id="h-vel" class="hud-v v-amber">11.2 KM/S</span></div>
+    <div class="hud-g"><span class="hud-l">PHASE</span><span id="h-phase" class="hud-v v-green">ORBITAL ENTRY</span></div>
+    <div class="hud-g"><div class="hud-bar"><div id="h-bar" class="hud-bar-f"></div></div><span id="h-pct" class="hud-v">0%</span></div>
   </div>
 
-  <!-- =================================================================== -->
-  <!-- BOTTOM ROW (FULL WIDTH): SPHEREx 102 SPECTRAL CHANNELS SLICER RAIL -->
-  <!-- =================================================================== -->
-  <footer class="app-footer">
-    <div class="footer-meta">
-      <div class="flex items-center gap-2">
-        <i data-lucide="sliders-horizontal" class="footer-icon text-cyan"></i>
-        <span class="footer-title">SPHEREx 102 Spectral Channels Slicer</span>
-        <span class="footer-range-tag font-mono">0.75 µm — 5.00 µm</span>
-      </div>
+  <!-- ============================================================ -->
+  <!-- SCROLL SPACER (the acts live inside this)                     -->
+  <!-- ============================================================ -->
+  <main id="scroller">
 
-      <div class="footer-readout font-mono">
-        <span class="readout-part">ACTIVE CHANNEL: <strong id="rail-channel-idx" class="text-cyan">Channel 48 / 102</strong></span>
-        <span class="readout-sep">|</span>
-        <span class="readout-part">WAVELENGTH (λ): <strong id="rail-wavelength-val" class="text-amber">2.45 µm</strong></span>
-        <span class="readout-sep">|</span>
-        <span class="readout-part">DETECTOR ARRAY: <strong id="rail-detector-name" class="text-white">Array 3 (MWIR)</strong></span>
+    <!-- ACT 1 — HERO: THE FALL ================================= -->
+    <section id="act-hero" class="act act-hero">
+      <div class="act-inner act-center">
+        <div class="pill"><i data-lucide="orbit"></i><span>ACT I // ORBITAL DESCENT</span></div>
+        <div class="hero-subline">[ SECTOR 001 // MOON BOUND ]</div>
+        <h1 class="hero-title">
+          <span class="hero-line hero-line-1">FALLING THROUGH</span>
+          <span class="hero-line hero-line-2">
+            <span class="cosmic-text">THE COSMIC SILENCE</span>
+          </span>
+        </h1>
+        <div class="hero-meta">
+          <span>0.75 – 5.0 µm</span>
+          <span class="meta-dot"></span>
+          <span>102 SPECTRAL CHANNELS</span>
+          <span class="meta-dot"></span>
+          <span>SPHEREx OBSERVATORY</span>
+        </div>
+        <p class="body-lg">NASA's SPHEREx observatory scans the entire sky every 6 months across <strong>102 infrared bands</strong> — hunting for cold brown dwarfs, rogue exoplanets, and the elusive Planet X.</p>
+
+        <!-- ROCKET QUICK NAV POPUP AT TOP OF PAGE -->
+        <div id="rocket-hero-popup" class="rocket-hero-popup">
+          <div class="rocket-craft-group">
+            
+            <!-- Trailing Navigation Banner -->
+            <div class="rocket-banner">
+              <div class="banner-tether-cables">
+                <svg class="tether-svg" viewBox="0 0 40 40">
+                  <line x1="0" y1="8" x2="40" y2="2" stroke="#00e5ff" stroke-width="2" stroke-dasharray="3 2"/>
+                  <line x1="0" y1="32" x2="40" y2="38" stroke="#00e5ff" stroke-width="2" stroke-dasharray="3 2"/>
+                </svg>
+              </div>
+              <div class="banner-body">
+                <div class="banner-links">
+                  <a href="#sec-team" class="r-link"><span class="r-num">01</span> TEAM</a>
+                  <span class="r-dot">•</span>
+                  <a href="#sec-how-built" class="r-link"><span class="r-num">02</span> HOW WE BUILT</a>
+                  <span class="r-dot">•</span>
+                  <a href="#act-challenge" class="r-link"><span class="r-num">03</span> CHALLENGE</a>
+                  <span class="r-dot">•</span>
+                  <a href="#sec-resources" class="r-link"><span class="r-num">04</span> RESOURCE USED</a>
+                  <span class="r-dot">•</span>
+                  <a href="#sec-contact" class="r-link r-cta"><span class="r-num">05</span> CONTACT US</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Precision SVG Rocket -->
+            <div class="rocket-sprite">
+              <!-- Thruster Plasma Flame -->
+              <div class="thruster-flame-wrap">
+                <div class="plasma-flame flame-top"></div>
+                <div class="plasma-flame flame-bot"></div>
+              </div>
+
+              <!-- SVG Rocket (Red nose, silver body, blue fins, dual nozzles) -->
+              <svg class="rocket-svg" viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="fuselageGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#f5f7fa"/>
+                    <stop offset="30%" stop-color="#dce3eb"/>
+                    <stop offset="70%" stop-color="#9cb0c6"/>
+                    <stop offset="100%" stop-color="#67788e"/>
+                  </linearGradient>
+                  <linearGradient id="fuselageSpec" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="redNose" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ff3b3b"/>
+                    <stop offset="40%" stop-color="#e60000"/>
+                    <stop offset="100%" stop-color="#8a0000"/>
+                  </linearGradient>
+                  <linearGradient id="blueFin" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#00b4d8"/>
+                    <stop offset="50%" stop-color="#0077b6"/>
+                    <stop offset="100%" stop-color="#023e8a"/>
+                  </linearGradient>
+                  <linearGradient id="nozzleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#4a5568"/>
+                    <stop offset="50%" stop-color="#2d3748"/>
+                    <stop offset="100%" stop-color="#1a202c"/>
+                  </linearGradient>
+                  <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffeaa7"/>
+                    <stop offset="50%" stop-color="#fdcb6e"/>
+                    <stop offset="100%" stop-color="#d63031"/>
+                  </linearGradient>
+                  <radialGradient id="glassGrad" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stop-color="#90e0ef"/>
+                    <stop offset="40%" stop-color="#0077b6"/>
+                    <stop offset="80%" stop-color="#03045e"/>
+                    <stop offset="100%" stop-color="#000000"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- Top Fin -->
+                <path d="M 68 34 Q 85 6 135 16 L 138 34 Z" fill="url(#blueFin)" stroke="#023e8a" stroke-width="1.5"/>
+                <!-- Bottom Fin -->
+                <path d="M 68 86 Q 85 114 135 104 L 138 86 Z" fill="url(#blueFin)" stroke="#023e8a" stroke-width="1.5"/>
+
+                <!-- Dual Rocket Nozzles -->
+                <path d="M 44 44 L 68 46 L 68 56 L 44 58 Z" fill="url(#nozzleGrad)" stroke="#111" stroke-width="1.5"/>
+                <line x1="50" y1="45" x2="50" y2="57" stroke="#718096" stroke-width="1"/>
+                <line x1="56" y1="46" x2="56" y2="56" stroke="#718096" stroke-width="1"/>
+                <line x1="62" y1="46" x2="62" y2="56" stroke="#718096" stroke-width="1"/>
+
+                <path d="M 44 62 L 68 64 L 68 74 L 44 76 Z" fill="url(#nozzleGrad)" stroke="#111" stroke-width="1.5"/>
+                <line x1="50" y1="63" x2="50" y2="75" stroke="#718096" stroke-width="1"/>
+                <line x1="56" y1="64" x2="56" y2="74" stroke="#718096" stroke-width="1"/>
+                <line x1="62" y1="64" x2="62" y2="74" stroke="#718096" stroke-width="1"/>
+
+                <!-- Main Fuselage -->
+                <path d="M 68 34 Q 130 30 220 34 L 220 86 Q 130 90 68 86 Z" fill="url(#fuselageGrad)" stroke="#4a5568" stroke-width="1.5"/>
+                <!-- Specular Reflection -->
+                <path d="M 70 36 Q 135 33 218 36 L 218 48 Q 135 44 70 48 Z" fill="url(#fuselageSpec)"/>
+
+                <!-- Red Nose Cone -->
+                <path d="M 220 34 Q 288 45 310 60 Q 288 75 220 86 Z" fill="url(#redNose)" stroke="#660000" stroke-width="1.5"/>
+                <path d="M 222 36 Q 275 46 298 56 Q 260 50 222 48 Z" fill="#ffffff" opacity="0.6"/>
+
+                <!-- Side Fin -->
+                <path d="M 68 56 Q 100 50 145 60 Q 100 70 68 64 Z" fill="url(#blueFin)" stroke="#023e8a" stroke-width="1.5"/>
+
+                <!-- Porthole Window -->
+                <circle cx="168" cy="60" r="17" fill="url(#bezelGrad)" stroke="#b7791f" stroke-width="1.5"/>
+                <circle cx="168" cy="60" r="13" fill="url(#glassGrad)"/>
+                <ellipse cx="164" cy="56" rx="5" ry="3" fill="#ffffff" opacity="0.8" transform="rotate(-30 164 56)"/>
+
+                <!-- Panel Lines -->
+                <line x1="120" y1="34" x2="120" y2="86" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+                <line x1="220" y1="34" x2="220" y2="86" stroke="#4a5568" stroke-width="1.5"/>
+              </svg>
+            </div>
+
+          </div>
+        </div>
+        <div class="scroll-hint">
+          <span class="mouse"><span class="wheel"></span></span>
+          <span>SCROLL TO DESCEND</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 2 — LUNAR TOUCHDOWN ================================ -->
+    <section id="act-land" class="act act-land">
+      <div class="act-inner act-left">
+        <div class="card glass">
+          <div class="pill"><i data-lucide="map-pin"></i><span>ACT II // LUNAR TOUCHDOWN</span></div>
+          <h2 class="title-lg">Touchdown on the<br>Ancient Regolith</h2>
+          <p class="body-md">Zero atmospheric distortion. The lunar surface is the purest observational baseline in the solar system.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="stat-v v-cyan">0.00%</span><span class="stat-l">Atm. Loss</span></div>
+            <div class="stat"><span class="stat-v v-amber">102</span><span class="stat-l">IR Bands</span></div>
+            <div class="stat"><span class="stat-v v-green">182.5 d</span><span class="stat-l">Baseline</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 3 — TERMINAL OPENS ================================= -->
+    <section id="act-terminal" class="act act-terminal">
+      <div class="act-inner act-right">
+        <div class="card glass">
+          <div class="pill"><i data-lucide="terminal"></i><span>ACT III // DISCOVERY TERMINAL</span></div>
+          <h2 class="title-lg">The Terminal<br>Materializes</h2>
+          <p class="body-md">A space-hardened laptop opens its display and beams a holographic interface. The pipeline connects directly to NASA's IPAC Infrared Science Archive.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="stat-v v-cyan">2.4 TB/yr</span><span class="stat-l">Data Rate</span></div>
+            <div class="stat"><span class="stat-v v-amber">0.75 – 5.0 µm</span><span class="stat-l">λ Range</span></div>
+            <div class="stat"><span class="stat-v v-green">> 1 Billion</span><span class="stat-l">Objects</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 4 — 1930 vs 2026 REVEAL ============================= -->
+    <section id="act-reveal" class="act act-reveal">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="reveal-top">
+            <div>
+              <div class="pill"><i data-lucide="scan"></i><span>ITOM SHADER // TIME MACHINE</span></div>
+              <h2 class="title-lg">Clyde Tombaugh 1930<br>vs SPHEREx 2026</h2>
+            </div>
+            <div class="reveal-badge"><span class="pre-dot"></span>INTERACTIVE THERMAL SCANNER</div>
+          </div>
+          <p class="body-md">In 1930, Clyde Tombaugh spent 7,000 hours examining glass plates to find Pluto. Today, SPHEREx peels back cosmic obscuration across 102 infrared channels. <strong>Scrub your cursor</strong> over the vintage plate below to reveal the 2026 infrared dipole.</p>
+          <div class="reveal-stage" id="reveal-stage">
+            <canvas id="reveal-canvas" width="1024" height="576"></canvas>
+            <div class="reveal-hud">
+              <span class="rh tl">1930 LOWELL OBSERVATORY</span>
+              <span class="rh tr v-amber">SPHEREx 102-BAND INFRARED</span>
+              <span class="rh bl v-cyan" id="brush-xy">SCANNER: ACTIVE</span>
+              <span class="rh br v-green" id="reveal-pct">REVEALED: 0%</span>
+            </div>
+          </div>
+          <div class="reveal-controls">
+            <div class="rc-btns">
+              <button id="r-brush" class="rc-b active"><i data-lucide="paintbrush"></i> Thermal Brush</button>
+              <button id="r-scan" class="rc-b"><i data-lucide="radar"></i> Radar Sweep</button>
+              <button id="r-split" class="rc-b"><i data-lucide="columns-2"></i> Split</button>
+              <button id="r-reset" class="rc-b"><i data-lucide="rotate-ccw"></i> Reset</button>
+            </div>
+            <div class="rc-range"><label>APERTURE</label><input type="range" id="brush-r" min="25" max="150" value="70"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 5 — KUIPER BELT 500 AU ============================== -->
+    <section id="act-kuiper" class="act act-kuiper">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="kuiper-grid">
+            <div class="kuiper-vis" id="kuiper-vis">
+              <video autoplay loop muted playsinline poster="planet_x_kuiper.jpg" class="kuiper-vid">
+                <source src="kuiper_orbit.mp4" type="video/mp4">
+              </video>
+              <div class="kuiper-live"><span class="pre-dot dot-red"></span>CINEMATIC FLYBY</div>
+            </div>
+            <div class="kuiper-text">
+              <div class="pill"><i data-lucide="telescope"></i><span>TRANS-NEPTUNIAN FRONTIER</span></div>
+              <h2 class="title-lg">Hunting at 500 AU</h2>
+              <p class="body-md">Orbital clustering of extreme TNOs strongly suggests a 5–10 M⊕ world orbiting the outer solar system. At 500 AU, only SPHEREx's thermal infrared at 3.0–5.0 µm can detect it.</p>
+              <div class="stat-row">
+                <div class="stat"><span class="stat-v v-cyan">5–10 M⊕</span><span class="stat-l">Mass</span></div>
+                <div class="stat"><span class="stat-v v-amber">~40 K</span><span class="stat-l">Temp</span></div>
+                <div class="stat"><span class="stat-v v-green">1.2 "/yr</span><span class="stat-l">Parallax</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 6 — DUAL MODES GATEWAY ============================== -->
+    <section id="act-modes" class="act act-modes">
+      <div class="act-inner act-center-wide">
+        <div class="modes-head">
+          <div class="pill"><i data-lucide="sparkles"></i><span>DUAL-EXPERIENCE ARCHITECTURE</span></div>
+          <h2 class="title-xl">Choose Your<br><span class="grad">Discovery Path</span></h2>
+          <p class="body-lg">One engine. Two distinct experiences.</p>
+        </div>
+        <div class="modes-grid">
+          <div class="mode-card glass" onclick="window.location.href='comare.html'">
+            <div class="mc-top"><div class="mc-icon mc-icon-l"><i data-lucide="telescope"></i></div><span class="mc-tag">FOR EVERYONE</span></div>
+            <h3 class="title-md">Citizen Explorer</h3>
+            <p class="body-sm">Spot shifting asteroids, listen to infrared spectra, earn your NASA Citizen Discovery badge.</p>
+            <ul class="mc-list">
+              <li><i data-lucide="check"></i> Interactive Blink Comparator</li>
+              <li><i data-lucide="check"></i> Infrared Audio Sonification</li>
+              <li><i data-lucide="check"></i> Downloadable Discovery Certificate</li>
+            </ul>
+            <button class="btn btn-l" onclick="window.location.href='comare.html'">Enter Explorer Mode <i data-lucide="arrow-right"></i></button>
+          </div>
+          <div class="mode-card glass" onclick="window.location.href='scientist.html'">
+            <div class="mc-top"><div class="mc-icon mc-icon-s"><i data-lucide="activity"></i></div><span class="mc-tag">ASTROPHYSICS CONSOLE</span></div>
+            <h3 class="title-md">Scientist Mode</h3>
+            <p class="body-sm">Full 3-column dashboard. Load FITS, scrub 102 spectral channels, overlay Gaia DR3 proper motion.</p>
+            <ul class="mc-list">
+              <li><i data-lucide="check"></i> 6 Comparison Engines (Blink, Diff, RGB)</li>
+              <li><i data-lucide="check"></i> 102-Band SED Molecular Chart</li>
+              <li><i data-lucide="check"></i> JSON Discovery Dossier Export</li>
+            </ul>
+            <button class="btn btn-s">Launch Console <i data-lucide="terminal"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 7 — NASA CHALLENGE ================================== -->
+    <section id="act-challenge" class="act act-challenge">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="award"></i><span>NASA SPACE APPS CHALLENGE 2026</span></div>
+          <h2 class="title-lg">The Challenge:<br>Planet X & SPHEREx</h2>
+          <div class="chal-grid">
+            <div class="chal-vid">
+              <video autoplay loop muted playsinline poster="gemini_video1_preview.jpg" class="chal-video">
+                <source src="gemini_video1.mp4" type="video/mp4">
+              </video>
+              <div class="kuiper-live"><span class="pre-dot dot-red"></span>GOOGLE VEO // POLAR ORBIT</div>
+            </div>
+            <div class="chal-bench">
+              <div class="bench-item bench-hl"><span class="pre-dot"></span><span class="bench-n">Real SPHEREx QR2 FITS Data</span><br><span class="bench-d">Level-2 calibrated science matrices</span></div>
+              <div class="bench-item"><span class="bench-n">Barnard's Star</span><span class="bench-d">10.37 "/yr proper motion</span></div>
+              <div class="bench-item"><span class="bench-n">WISE 0855-0714</span><span class="bench-d">Coldest Y-Dwarf (250K)</span></div>
+              <div class="bench-item"><span class="bench-n">Epsilon Indi B</span><span class="bench-d">Binary brown dwarf (T1+T6)</span></div>
+              <div class="bench-item"><span class="bench-n">RW Aurigae & R Draconis</span><span class="bench-d">Pulsating variable stars</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION — HOW WE BUILT ================================= -->
+    <section id="sec-how-built" class="act act-arch">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="cpu"></i><span>HACKATHON ENGINEERING ARCHITECTURE</span></div>
+          <h2 class="title-lg">How We Built It</h2>
+          <p class="body-md">Engineered specifically for the NASA Space Apps Challenge 2026. A zero-cost, high-performance web architecture combining client-side astrophysics with 240fps+ scrollytelling.</p>
+          <div class="arch-grid">
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="layers"></i></div>
+              <h3 class="title-sm">1. Sub-Frame Scrolly Engine</h3>
+              <p class="body-sm">Custom HTML5 canvas rendering engine interpolating 120 AI-remastered frames with momentum spring lerping and continuous alpha blending at native monitor refresh rates.</p>
+              <span class="arch-tag">240FPS+ ENGINE</span>
+            </div>
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="binary"></i></div>
+              <h3 class="title-sm">2. 102-Band FITS Pipeline</h3>
+              <p class="body-sm">Level-2 calibrated science matrices mapped across 0.75–5.0 µm. Extracts Spectral Energy Distributions (SED) to detect methane (1.66 µm) and water ice absorption dips.</p>
+              <span class="arch-tag">FITS CALIBRATION</span>
+            </div>
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="sparkles"></i></div>
+              <h3 class="title-sm">3. Dual Discovery UX</h3>
+              <p class="body-sm">Two interfaces on one engine: a gamified Citizen Explorer with audio sonification and blink comparator, and a full 3-column astrophysics research console.</p>
+              <span class="arch-tag">DUAL MODES</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION — RESOURCES USED ================================ -->
+    <section id="sec-resources" class="act act-resources">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="database"></i><span>DATASETS, APIS & ASSETS</span></div>
+          <h2 class="title-lg">Resources Used</h2>
+          <p class="body-md">All data sources, scientific catalogs, tools, and models utilized throughout this hackathon project.</p>
+          <div class="res-grid">
+            <div class="res-card">
+              <div class="rc-head"><span class="pre-dot"></span><strong>NASA IPAC / IRSA</strong></div>
+              <p class="body-sm">SPHEREx Quick Release 2 all-sky spectral survey data and calibrated infrared imaging cubes.</p>
+              <span class="res-src">science.nasa.gov</span>
+            </div>
+            <div class="res-card">
+              <div class="rc-head"><span class="pre-dot"></span><strong>ESA Gaia DR3 Catalog</strong></div>
+              <p class="body-sm">High-precision proper motion vectors, stellar parallax baselines, and astrometric cross-matching.</p>
+              <span class="res-src">cosmos.esa.int</span>
+            </div>
+            <div class="res-card">
+              <div class="rc-head"><span class="pre-dot"></span><strong>Google Veo & Gemini</strong></div>
+              <p class="body-sm">Cinematic orbital simulation passes and deep-space telemetry visualizations rendered via Google AI Studio.</p>
+              <span class="res-src">deepmind.google</span>
+            </div>
+            <div class="res-card">
+              <div class="rc-head"><span class="pre-dot"></span><strong>Lowell 1930 Archives</strong></div>
+              <p class="body-sm">Clyde Tombaugh's historical discovery photographic plates digitized for the interactive Time Machine shader.</p>
+              <span class="res-src">lowell.edu</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION — TEAM PROMETHEUS =============================== -->
+    <section id="sec-team" class="act act-team">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="users"></i><span>TEAM PROMETHEUS</span></div>
+          <h2 class="title-lg">Meet The Team</h2>
+          <p class="body-md">Created by Team Prometheus for the NASA Space Apps Challenge 2026.</p>
+          <div class="team-grid team-grid-2">
+            <div class="team-card">
+              <div class="team-avatar"><i data-lucide="compass"></i></div>
+              <h3 class="team-name">Lead Developer & Researcher</h3>
+              <span class="team-role">Astrophysics Pipeline & Core Architecture</span>
+              <p class="body-sm">Designed the SPHEREx 102-band infrared processing pipeline, Level-2 FITS matrix ingestion, and Gaia DR3 astrometric cross-matching.</p>
+              <div class="team-badge">PIPELINE & CORE RESEARCH</div>
+            </div>
+            <div class="team-card">
+              <div class="team-avatar"><i data-lucide="code"></i></div>
+              <h3 class="team-name">Creative Technologist & UX</h3>
+              <span class="team-role">240fps Canvas, Shaders & Citizen Game</span>
+              <p class="body-sm">Built the sub-frame canvas scrollytelling engine, ITom thermal reveal scanner, Web Audio sonification synth, and Citizen Explorer game.</p>
+              <div class="team-badge">CREATIVE TECH & UX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION — CONTACT US ==================================== -->
+    <section id="sec-contact" class="act act-contact">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="mail"></i><span>HACKATHON DOSSIER & CONNECT</span></div>
+          <h2 class="title-lg">Contact Us & Project Links</h2>
+          <p class="body-md">Explore our codebase, test the scientist console, or review our NASA Space Apps Challenge 2026 submission dossier.</p>
+          <div class="contact-grid">
+            <a href="https://github.com" target="_blank" class="contact-item">
+              <div class="ci-icon"><i data-lucide="github"></i></div>
+              <div>
+                <strong>GitHub Repository</strong>
+                <p class="body-sm">Open source codebase, scripts & datasets</p>
+              </div>
+              <i data-lucide="external-link" class="ci-arrow"></i>
+            </a>
+            <a href="index.html" class="contact-item">
+              <div class="ci-icon"><i data-lucide="terminal"></i></div>
+              <div>
+                <strong>Scientist Console</strong>
+                <p class="body-sm">Launch full 3-column FITS analysis tool</p>
+              </div>
+              <i data-lucide="arrow-right" class="ci-arrow"></i>
+            </a>
+            <a href="https://www.spaceappschallenge.org" target="_blank" class="contact-item">
+              <div class="ci-icon"><i data-lucide="award"></i></div>
+              <div>
+                <strong>NASA Space Apps Submission</strong>
+                <p class="body-sm">Official Team Prometheus project page</p>
+              </div>
+              <i data-lucide="external-link" class="ci-arrow"></i>
+            </a>
+            <a href="mailto:contact@teamprometheus.space" class="contact-item">
+              <div class="ci-icon"><i data-lucide="send"></i></div>
+              <div>
+                <strong>Email The Team</strong>
+                <p class="body-sm">Inquiries, collaborations & judging questions</p>
+              </div>
+              <i data-lucide="arrow-right" class="ci-arrow"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- LAYMAN MODAL                                                  -->
+  <!-- ============================================================ -->
+  <div id="layman-modal" class="lm-overlay hidden">
+    <div class="lm-backdrop" onclick="closeLaymanModal()"></div>
+    <div class="lm-box glass">
+      <div class="lm-head">
+        <h3 class="title-md">Citizen Explorer</h3>
+        <button class="lm-close" onclick="closeLaymanModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="lm-body">
+        <div class="lm-grid">
+          <div class="lm-canvas-col">
+            <div class="lm-hud"><span id="lm-epoch" class="v-cyan">EPOCH 1 (MAY 2025)</span><span id="lm-score">SCORE: 0 / 3</span></div>
+            <div class="lm-stage"><canvas id="lm-canvas" width="400" height="400"></canvas></div>
+            <div class="lm-btns">
+              <button id="lm-blink" class="rc-b"><i data-lucide="play"></i> <span id="lm-blink-txt">Auto-Blink</span></button>
+              <button id="lm-hint" class="rc-b"><i data-lucide="help-circle"></i> Hint</button>
+              <button id="lm-sound" class="rc-b"><i data-lucide="volume-2"></i> Listen</button>
+            </div>
+          </div>
+          <div class="lm-info-col">
+            <h4>How To Spot a Hidden Planet</h4>
+            <div class="lm-steps">
+              <div class="lm-step"><span class="lm-num">1</span><div><strong>Blink The Images</strong><p>Stars don't move. Solar system bodies shift between epochs.</p></div></div>
+              <div class="lm-step"><span class="lm-num">2</span><div><strong>Click The Moving Dot</strong><p>Click directly on the dot that jumps positions.</p></div></div>
+              <div class="lm-step"><span class="lm-num">3</span><div><strong>Listen To Its Spectrum</strong><p>102 IR wavelengths played as audio. Drops = methane, water.</p></div></div>
+            </div>
+            <div id="lm-discovery" class="lm-discovery hidden">
+              <i data-lucide="check-circle-2"></i>
+              <strong class="v-green">DISCOVERY CONFIRMED!</strong>
+              <p>You located WISE 0855-0714 — a frigid brown dwarf 7.2 ly away.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- 102 Channel Continuous Range Slider -->
-    <div class="spectral-rail-wrap">
-      <input type="range" id="spectral-channel-slider" min="1" max="102" value="48" class="spectral-rail-slider">
-      <div class="spectral-tick-labels font-mono">
-        <span>0.75 µm (Array 1: SWIR)</span>
-        <span>1.50 µm (Array 2: Water)</span>
-        <span>2.45 µm (Array 3: NIR)</span>
-        <span>3.30 µm (Array 4: CH4)</span>
-        <span>4.20 µm (Array 5: CO2)</span>
-        <span>5.00 µm (Array 6: MWIR Peak)</span>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Main Application Script -->
-  <script src="app.js"></script>
+  <script src="landing.js"></script>
 </body>
 </html>

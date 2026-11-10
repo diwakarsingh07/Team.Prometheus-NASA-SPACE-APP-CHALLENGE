@@ -5,11 +5,15 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/landing.html"
+      "destination": "/index.html"
+    },
+    {
+      "source": "/landing",
+      "destination": "/index.html"
     },
     {
       "source": "/scientist",
-      "destination": "/index.html"
+      "destination": "/scientist.html"
     },
     {
       "source": "/citizen",
