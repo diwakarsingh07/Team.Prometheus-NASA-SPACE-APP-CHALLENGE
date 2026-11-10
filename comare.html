@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROMETHEUS • NASA SPHEREx Astronomical Observation & Comparison Engine</title>
+  <link rel="stylesheet" href="compare.css">
+  <link rel="stylesheet" href="/compare.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background Space Canvas & Glow -->
+  <canvas id="starfield-canvas"></canvas>
+  <div class="cosmic-nebula-glow"></div>
+
+  <div class="app-container">
+
+    <!-- Header & User Understanding Bar -->
+    <header class="header-bar">
+      <div class="brand-section">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <h1>PROMETHEUS</h1>
+          <div class="brand-subtitle">NASA SPHEREx Space Observation & Time-Lapse Comparison</div>
+        </div>
+      </div>
+
+      <!-- Experience Mode Switcher (Simple Layman Guide vs Pro Astrophysics) -->
+      <div class="experience-mode-toggle">
+        <button class="exp-btn active" id="btn-mode-simple" onclick="setExperienceMode('simple')">
+          <span>🧒</span> Plain-English Guide (Simple)
+        </button>
+        <button class="exp-btn" id="btn-mode-pro" onclick="setExperienceMode('pro')">
+          <span>🔬</span> Astrophysics Pro
+        </button>
+      </div>
+
+      <div class="mission-telemetry-pills">
+        <a href="landing.html" class="glossary-pill-btn" style="text-decoration:none; color:rgba(255,255,255,0.85);" title="Return to Landing Page">
+          <span>🚀</span> Mission Control
+        </a>
+        <button class="glossary-pill-btn" onclick="openGlossaryModal()">
+          <span>📖</span> Space Words Explained
+        </button>
+        <div class="pill-item">
+          <div class="status-dot"></div>
+          <span>HEAT CAMERA ACTIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- How to Explore Banner (3 Simple Steps for Anyone) -->
+    <div class="how-to-guide-bar" id="how-to-guide">
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div><strong>Pick a celestial object below:</strong> Choose a speeding star, a baby star wrapped in ice, or a beating giant.</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div><strong>Choose two dates:</strong> Compare how it looked 6 months apart (April 2025 vs October 2025).</div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div><strong>Spot what changed:</strong> Drag the slider or click <strong>Blink</strong> to watch stars move or change brightness!</div>
+      </div>
+    </div>
+
+    <!-- Friendly Human Story Hero Card (Dynamic Plain-English Story) -->
+    <section class="layman-story-card" id="layman-story-section">
+      <div class="layman-story-header">
+        <div class="layman-badge-tag" id="story-badge">
+          <span>✨</span> <span id="story-badge-text">Baby Star & Frozen Water</span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-cyan);" id="story-date-diff">
+          Comparing April 2025 with October 2025 (6 Months Later)
+        </div>
+      </div>
+
+      <h2 class="layman-story-title" id="story-title">
+        The Baby Star in an Ice Blanket (L1527)
+      </h2>
+
+      <p class="layman-story-body" id="story-body">
+        Imagine a baby star that is only 100,000 years old (our Sun is 4.6 billion years old!). It is still wrapped inside a freezing cosmic blanket made of real water ice crystals, carbon dioxide, and dry ice. As the baby star gulps down matter from its cloud, it occasionally heats up and flickers—causing some of the surrounding space frost to melt or freeze back again. NASA observes this to understand where planet-forming water comes from!
+      </p>
+
+      <!-- 3 Instant Answers in Plain English -->
+      <div class="layman-answers-grid">
+        <div class="answer-card">
+          <div class="answer-q">
+            <span>🏃‍♂️</span> Did it move across the sky?
+          </div>
+          <div class="answer-badge" id="story-motion-badge" style="color: var(--accent-emerald);">
+            Stationary Position
+          </div>
+          <div class="answer-desc" id="story-motion-desc">
+            Anchor steady: It did not budge in position relative to distant background stars.
+          </div>
+        </div>
+
+        <div class="answer-card">
+          <div class="answer-q">
+            <span>💡</span> Did its brightness change?
+          </div>
+          <div class="answer-badge" id="story-bright-badge" style="color: var(--accent-amber);">
+            +8.0% Brighter
+          </div>
+          <div class="answer-desc" id="story-bright-desc">
+            Energy surge: The star got noticeably brighter between dates, like turning up a lamp dimmer switch.
+          </div>
+        </div>
+
+        <div class="answer-card">
+          <div class="answer-q">
+            <span>🧊</span> Is there water or ice in space?
+          </div>
+          <div class="answer-badge" id="story-chem-badge" style="color: var(--accent-cyan);">
+            Real Frozen Water Ice Detected
+          </div>
+          <div class="answer-desc" id="story-chem-desc">
+            Just like ice cubes in your freezer, billions of frozen water crystals are floating in cold clouds around this star!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sky Explorer & Target Selection Bar -->
+    <section class="target-explorer-bar" id="explorer-section">
+      <div class="explorer-top-row">
+        <div class="search-input-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="target-search-input" class="search-input" placeholder="Search any star name (e.g. Barnard, Betelgeuse, L1527) or coordinates..." value="L1527">
+          <button class="search-btn" id="search-btn" onclick="executeSearch()">Explore</button>
+        </div>
+
+        <div class="benchmark-chips">
+          <span class="chips-label">Quick Targets:</span>
+          <button class="target-chip active" data-target="l1527" onclick="selectBenchmarkTarget('l1527')">
+            <span>🧊 L1527</span>
+            <span class="chip-badge">Baby Sun in Ice</span>
+          </button>
+          <button class="target-chip" data-target="barnard" onclick="selectBenchmarkTarget('barnard')">
+            <span>🏃‍♂️ Barnard's Star</span>
+            <span class="chip-badge">Watch It Jump!</span>
+          </button>
+          <button class="target-chip" data-target="betelgeuse" onclick="selectBenchmarkTarget('betelgeuse')">
+            <span>💓 Betelgeuse</span>
+            <span class="chip-badge">Beating Heart</span>
+          </button>
+          <button class="target-chip" data-target="trappist1" onclick="selectBenchmarkTarget('trappist1')">
+            <span>🪐 TRAPPIST-1</span>
+            <span class="chip-badge">7-Planet Sun</span>
+          </button>
+          <button class="target-chip" data-target="iras08572" onclick="selectBenchmarkTarget('iras08572')">
+            <span>🌀 IRAS 08572</span>
+            <span class="chip-badge">Smashing Galaxies</span>
+          </button>
+          <button class="target-chip" data-target="orion_kl" onclick="selectBenchmarkTarget('orion_kl')">
+            <span>✨ Orion Nursery</span>
+            <span class="chip-badge">Star Factory</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Target Hero Banner -->
+      <div class="active-target-banner" id="active-target-banner">
+        <div class="target-main-info">
+          <div class="target-category-tag" id="target-category-tag">Interstellar Ices & Protoplanetary Disks</div>
+          <div class="target-title-area">
+            <h3 id="target-name">L1527 IRS (Taurus Molecular Core)</h3>
+            <div class="target-designation" id="target-designation">IRAS 04368+2557 • Newborn Protostar</div>
+          </div>
+        </div>
+
+        <div class="target-coord-chips">
+          <div class="coord-chip">Sky Position (RA): <span id="target-ra-str">04h 39m 53.9s</span></div>
+          <div class="coord-chip">Sky Position (Dec): <span id="target-dec-str">+26° 03' 09.8"</span></div>
+          <div class="coord-chip">Speed in Space: <span id="target-pm-str">~19 km/s</span></div>
+          <div class="coord-chip">Distance from Earth: <span id="target-dist-str">140 pc (~450 light-years)</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Controls & Mode Switcher -->
+    <section class="comparison-controls-card" id="compare-section">
+      <div class="epoch-pair-selector">
+        <div class="selector-unit">
+          <label id="lbl-epoch-a">Snapshot 1 (Earlier Date)</label>
+          <select id="epoch-a-select" class="epoch-dropdown" onchange="onEpochChange()">
+            <option value="epoch_1" selected>Epoch 1 (April 15, 2025)</option>
+            <option value="epoch_2">Epoch 2 (October 15, 2025)</option>
+            <option value="epoch_3">Epoch 3 (April 15, 2026)</option>
+            <option value="epoch_4">Epoch 4 (October 15, 2026)</option>
+          </select>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="selector-unit">
+          <label id="lbl-epoch-b">Snapshot 2 (Later Date)</label>
+          <select id="epoch-b-select" class="epoch-dropdown" onchange="onEpochChange()">
+            <option value="epoch_1">Epoch 1 (April 15, 2025)</option>
+            <option value="epoch_2" selected>Epoch 2 (October 15, 2025)</option>
+            <option value="epoch_3">Epoch 3 (April 15, 2026)</option>
+            <option value="epoch_4">Epoch 4 (October 15, 2026)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mode-switches">
+        <button class="mode-btn active" id="btn-mode-side" onclick="setComparisonMode('side')" title="Look at both photos side by side">
+          <span>🪟</span> Side-by-Side
+        </button>
+        <button class="mode-btn" id="btn-mode-curtain" onclick="setComparisonMode('curtain')" title="Drag a split curtain divider horizontally">
+          <span>↔️</span> Split Curtain Slider
+        </button>
+        <button class="mode-btn" id="btn-mode-blink" onclick="setComparisonMode('blink')" title="Flashes back and forth so your eye spots movement instantly">
+          <span>⚡</span> Blink Comparator
+        </button>
+        <button class="mode-btn" id="btn-mode-diff" onclick="setComparisonMode('diff')" title="Subtracts old photo from new photo to highlight only what changed">
+          <span>🔴</span> Difference Map
+        </button>
+      </div>
+
+      <div class="quick-actions">
+        <button class="action-btn" onclick="exportDataCSV()">
+          <span>📥</span> Download Data Table
+        </button>
+        <button class="action-btn" onclick="copyAstropySnippet()">
+          <span>🐍</span> Astropy Code
+        </button>
+      </div>
+    </section>
+
+    <!-- Blink Toolbar (shown only in blink mode) -->
+    <div class="blink-toolbar" id="blink-toolbar">
+      <button class="action-btn" id="blink-toggle-btn" onclick="toggleBlinkPlay()">
+        <span id="blink-icon">⏸️</span> <span id="blink-label">Pause Blink</span>
+      </button>
+      <div class="blink-status-chip" id="blink-active-epoch-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan);">
+        SHOWING: PHOTO 1 (APRIL 2025)
+      </div>
+      <div class="blink-slider-group">
+        <label>Blink Speed:</label>
+        <input type="range" id="blink-speed-range" min="0.5" max="5.0" step="0.5" value="2.0" oninput="updateBlinkSpeed(this.value)">
+        <span id="blink-speed-val">2.0 times per sec</span>
+      </div>
+    </div>
+
+    <!-- Split Curtain Container (shown in Curtain mode) -->
+    <div class="split-curtain-container" id="split-curtain-container">
+      <div class="curtain-layer curtain-layer-bottom">
+        <img id="curtain-img-b" src="" alt="Epoch B Observation">
+      </div>
+      <div class="curtain-layer curtain-layer-top" id="curtain-top-layer">
+        <img id="curtain-img-a" src="" alt="Epoch A Observation">
+      </div>
+      <div class="curtain-handle" id="curtain-handle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </div>
+      <div class="curtain-label-a" id="curtain-lbl-a">PHOTO 1 (APRIL 2025)</div>
+      <div class="curtain-label-b" id="curtain-lbl-b">PHOTO 2 (OCTOBER 2025)</div>
+    </div>
+
+    <!-- Side-by-Side Dual Telescope Stage -->
+    <section class="comparison-stage-grid" id="side-by-side-stage">
+      <!-- Telescope Viewport A -->
+      <div class="stage-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="epoch-indicator-dot dot-epoch-a"></div>
+            <div>
+              <div class="panel-title" id="stage-a-title">Snapshot 1 (Earlier Observation)</div>
+              <div class="panel-date" id="stage-a-date">April 15, 2025</div>
+            </div>
+          </div>
+          <div class="panel-mjd-badge">REFERENCE PHOTO</div>
+        </div>
+
+        <div class="telescope-viewport" id="viewport-a">
+          <img class="telescope-img" id="img-epoch-a" src="" alt="SPHEREx Epoch A Render">
+          <div class="viewport-hud-overlay">
+            <div>NASA SPHEREx Infrared Heat Camera</div>
+            <div id="hud-a-coords">Position: RA 04h39m Dec +26°03'</div>
+          </div>
+          <div class="viewport-scale-bar">
+            <span>Size on sky: 10 arcsec</span>
+            <div class="scale-line"></div>
+          </div>
+        </div>
+
+        <div class="panel-telemetry-row">
+          <div class="tele-box">
+            <div class="tele-lbl" id="tele-lbl-a-flux">Infrared Heat / Brightness</div>
+            <div class="tele-val" id="tele-a-flux">850.0 mJy</div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-lbl">Ecliptic Solar Coordinates</div>
+            <div class="tele-val" id="tele-a-ecliptic">71.4°, +4.8°</div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-lbl">Milky Way Coordinates</div>
+            <div class="tele-val" id="tele-a-galactic">175.2°, -16.8°</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telescope Viewport B -->
+      <div class="stage-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="epoch-indicator-dot dot-epoch-b"></div>
+            <div>
+              <div class="panel-title" id="stage-b-title">Snapshot 2 (Later Observation)</div>
+              <div class="panel-date" id="stage-b-date">October 15, 2025</div>
+            </div>
+          </div>
+          <div class="panel-mjd-badge" id="stage-b-delta-badge">+183 Days Later (6 Months)</div>
+        </div>
+
+        <div class="telescope-viewport" id="viewport-b">
+          <img class="telescope-img" id="img-epoch-b" src="" alt="SPHEREx Epoch B Render">
+          <div class="viewport-hud-overlay">
+            <div>NASA SPHEREx Infrared Heat Camera</div>
+            <div id="hud-b-coords">Position: RA 04h39m Dec +26°03'</div>
+          </div>
+          <div class="viewport-scale-bar">
+            <span>Size on sky: 10 arcsec</span>
+            <div class="scale-line"></div>
+          </div>
+        </div>
+
+        <div class="panel-telemetry-row">
+          <div class="tele-box">
+            <div class="tele-lbl" id="tele-lbl-b-flux">Infrared Heat / Brightness</div>
+            <div class="tele-val" id="tele-b-flux">918.0 mJy</div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-lbl">Ecliptic Solar Coordinates</div>
+            <div class="tele-val" id="tele-b-ecliptic">71.4°, +4.8°</div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-lbl">Milky Way Coordinates</div>
+            <div class="tele-val" id="tele-b-galactic">175.2°, -16.8°</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Measurable Metrics Cards (Plain-English & Analogies) -->
+    <section class="metrics-dashboard-grid">
+      <!-- Metric 1: Did It Move? -->
+      <div class="metric-card highlight">
+        <div class="metric-header">
+          <span class="metric-label" id="metric-lbl-motion">Did It Move in Space?</span>
+          <div class="metric-icon-badge">📐</div>
+        </div>
+        <div class="metric-value-huge" id="metric-separation">0.009"</div>
+        <div class="metric-sub" id="metric-sub-motion">
+          <span>Shift on sky: <strong id="metric-delta-ra">+0.003"</strong></span>
+          <span>Direction: <strong id="metric-pa">162.5° (South-East)</strong></span>
+        </div>
+        <div class="metric-analogy-box" id="analogy-motion">
+          <strong>Everyday Analogy:</strong> Like watching a distant ship on the horizon. If this number is big (e.g. over 1"), the star is speeding through space like a runner!
+        </div>
+      </div>
+
+      <!-- Metric 2: Did It Get Brighter or Dimmer? -->
+      <div class="metric-card highlight">
+        <div class="metric-header">
+          <span class="metric-label" id="metric-lbl-flux">Did It Get Brighter or Dimmer?</span>
+          <div class="metric-icon-badge">✨</div>
+        </div>
+        <div class="metric-value-huge delta-positive" id="metric-flux-delta">+68.0 mJy</div>
+        <div class="metric-sub" id="metric-sub-flux">
+          <span>Relative Change: <strong id="metric-pct-change">+8.00%</strong></span>
+          <span>Variability: <strong id="metric-var-index">0.0769</strong></span>
+        </div>
+        <div class="metric-analogy-box" id="analogy-flux">
+          <strong>Everyday Analogy:</strong> Like turning a lamp's dimmer switch slightly up (+%) or down (-%). Stars like Betelgeuse pulse like beating hearts!
+        </div>
+      </div>
+
+      <!-- Metric 3: Is It Behaving Normally? -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label" id="metric-lbl-stability">Is It Behaving Normally?</span>
+          <div class="metric-icon-badge">📊</div>
+        </div>
+        <div class="metric-value-huge" id="metric-chi-sq">1.14</div>
+        <div class="metric-sub" id="metric-sub-stability">
+          <span>Status: <strong id="metric-chi-status" style="color: var(--accent-emerald);">Normal & Steady</strong></span>
+        </div>
+        <div class="metric-analogy-box" id="analogy-stability">
+          <strong>Everyday Analogy:</strong> A doctor checking an ECG heart monitor. Low numbers around 1.0 mean normal steady behavior; big numbers mean an explosion or flare!
+        </div>
+      </div>
+
+      <!-- Metric 4: Is There Space Frost & Water? -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label" id="metric-lbl-ice">Is There Space Frost & Water?</span>
+          <div class="metric-icon-badge">🧊</div>
+        </div>
+        <div class="metric-value-huge delta-negative" id="metric-ice-delta">-0.029</div>
+        <div class="metric-sub" id="metric-sub-ice">
+          <span>Water Ice (3.05µm): <strong id="metric-h2o-depth">Strong Ice Signal</strong></span>
+          <span>CO₂ Dry Ice (4.27µm): <strong id="metric-co2-depth">Frost Detected</strong></span>
+        </div>
+        <div class="metric-analogy-box" id="analogy-ice">
+          <strong>Everyday Analogy:</strong> Just like frost coating your car windshield on a freezing morning, cold space dust is coated in real water ice crystals!
+        </div>
+      </div>
+    </section>
+
+    <!-- Spectroscopy Lab: 102-Band Chart & Chemical Fingerprints -->
+    <section class="spectroscopy-section" id="spectra-section">
+      <div class="spectroscopy-header">
+        <div class="spec-title-group">
+          <h3>
+            <span>📈</span> Chemical Fingerprint: What Is This Star Made Of?
+          </h3>
+          <p id="spec-section-subtitle">
+            NASA splits invisible heat light into 102 shades of infrared. When light passes through cold water ice or gas in space, the chemicals "eat" specific colors, creating a dip in the line!
+          </p>
+        </div>
+
+        <div class="chart-legend-pills">
+          <div class="legend-pill">
+            <div class="legend-swatch swatch-epoch-a"></div>
+            <span id="legend-label-a">Photo 1 (Earlier)</span>
+          </div>
+          <div class="legend-pill">
+            <div class="legend-swatch swatch-epoch-b"></div>
+            <span id="legend-label-b">Photo 2 (Later)</span>
+          </div>
+          <div class="legend-pill">
+            <div class="legend-swatch swatch-ice"></div>
+            <span>Frozen Space Frost Signatures</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="spectral-chart-canvas-wrap">
+        <canvas id="spectral-canvas"></canvas>
+        <div id="chart-tooltip" class="tooltip-custom"></div>
+      </div>
+
+      <!-- Rainbow Heat Spectrum Guide -->
+      <div class="heat-spectrum-guide">
+        <div class="heat-guide-title">
+          <span>🌈 The 102 Invisible Colors of Heat Measured by NASA SPHEREx:</span>
+          <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-amber);">0.75 µm (Warm Red) &rarr; 5.0 µm (Deep Thermal Heat)</span>
+        </div>
+        <div class="rainbow-heat-bar"></div>
+        <div class="heat-labels-row">
+          <span>Near-Infrared (Starlight Warmth)</span>
+          <span>💧 Water Ice Band (3.05µm)</span>
+          <span>🧊 CO₂ Dry Ice (4.27µm)</span>
+          <span>Deep Thermal Space Heat</span>
+        </div>
+      </div>
+
+      <div class="ice-features-tags-row" style="margin-top: 1rem;">
+        <span class="ice-tag-title">Click to Inspect Chemical Fingerprints:</span>
+        <button class="ice-pill" onclick="explainChemicalFeature('h2o')">
+          💧 Where is the Frozen Water Ice? (3.05 &mu;m)
+        </button>
+        <button class="ice-pill" onclick="explainChemicalFeature('co2')">
+          🧊 Where is the Carbon Dioxide Dry Ice? (4.27 &mu;m)
+        </button>
+        <button class="ice-pill" onclick="explainChemicalFeature('co')">
+          ❄️ Where is the Carbon Monoxide Ice? (4.67 &mu;m)
+        </button>
+        <button class="ice-pill" onclick="explainChemicalFeature('ch3oh')">
+          🌿 Where is the Space Alcohol / Methanol? (3.53 &mu;m)
+        </button>
+      </div>
+    </section>
+
+    <!-- Multi-Epoch Timeline & Difference Preview -->
+    <section class="timeline-section" id="timeline-section">
+      <!-- Multi-Epoch Light Curve -->
+      <div class="timeline-card">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span style="font-size: 1.1rem;">⏱️</span>
+            <div>
+              <div class="panel-title">Brightness Over Time (Time-Lapse Light Curve)</div>
+              <div class="panel-date">Tracks how the object's brightness fluctuated across all 4 survey visits</div>
+            </div>
+          </div>
+          <div class="panel-mjd-badge">4 SURVEY VISITS</div>
+        </div>
+
+        <div class="lightcurve-chart-wrap">
+          <canvas id="lightcurve-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Difference Image Card -->
+      <div class="difference-preview-card">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span style="font-size: 1.1rem;">🔴</span>
+            <div>
+              <div class="panel-title">Difference Map (What Changed?)</div>
+              <div class="panel-date">Subtracts Photo 1 from Photo 2 to highlight changes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="diff-preview-box">
+          <div class="diff-img-wrap">
+            <img id="img-diff-map" src="" alt="Difference Map">
+          </div>
+          <div class="diff-legend-scale">
+            <span>Got Dimmer (Cyan)</span>
+            <div class="diff-bar"></div>
+            <span>Got Brighter (Red)</span>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; max-width: 220px; margin-top: 4px;">
+            Still stars disappear into black. Any dot that jumped or changed brightness glows brightly!
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plain-English Space Glossary Modal -->
+    <div id="glossary-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(4,7,18,0.85); backdrop-filter:blur(8px); z-index:999; align-items:center; justify-content:center; padding:1.5rem;">
+      <div style="background:var(--bg-surface-elevated); border:1px solid var(--border-glow); border-radius:var(--radius-lg); max-width:640px; width:100%; max-height:85vh; overflow-y:auto; padding:1.75rem; box-shadow:var(--shadow-glow); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+          <h3 style="font-size:1.2rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+            <span>📖</span> Space Words Explained (Plain English)
+          </h3>
+          <button onclick="closeGlossaryModal()" style="background:transparent; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1rem; font-size:0.85rem; line-height:1.55; color:#cbd5e1;">
+          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-cyan);">
+            <strong style="color:var(--accent-cyan); font-size:0.95rem;">What is Infrared Light?</strong>
+            <p>Our human eyes only see visible rainbow light. Infrared light is invisible heat radiation. Just like night-vision goggles let you see people in pitch darkness from their body heat, NASA's SPHEREx telescope uses infrared vision to peer through thick space dust clouds!</p>
+          </div>
+
+          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-amber);">
+            <strong style="color:var(--accent-amber); font-size:0.95rem;">Why do we care about Frozen Water Ice in Space?</strong>
+            <p>Where did Earth's oceans come from? Scientists believe billions of years ago, comets and space rocks coated in frozen water ice bombarded early Earth, filling our oceans! By mapping space frost around newborn baby stars, NASA learns how water gets delivered to new alien planets.</p>
+          </div>
+
+          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-rose);">
+            <strong style="color:var(--accent-rose); font-size:0.95rem;">Why do stars move in the sky?</strong>
+            <p>Everything in the Milky Way galaxy is in motion, orbiting the central supermassive black hole at hundreds of kilometers per second. While distant stars are too far away for us to notice, close stars (like Barnard's Star) visibly speed across the sky over just months!</p>
+          </div>
+
+          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-purple);">
+            <strong style="color:var(--accent-purple); font-size:0.95rem;">What is an Arcsecond (")?</strong>
+            <p>An arcsecond is a tiny unit used by astronomers to measure angles in the sky (1/3600th of a single degree). Seeing 1 arcsecond is like being able to spot a small coin from 4 kilometers away!</p>
+          </div>
+
+          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-emerald);">
+            <strong style="color:var(--accent-emerald); font-size:0.95rem;">What is SPHEREx?</strong>
+            <p>A NASA space telescope orbiting Earth that takes a fresh picture of the entire universe every 6 months in 102 distinct infrared colors to study cosmic inflation, water ices, and the birth of galaxies.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem; text-align:right;">
+          <button onclick="closeGlossaryModal()" class="action-btn" style="display:inline-flex;">Close Glossary</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-bar">
+      <div>
+        <strong>PROMETHEUS</strong> &bull; SPHEREx Astronomical Data Comparison Engine &bull; JPL / Caltech / NASA
+      </div>
+      <div class="footer-credits">
+        Integrated with <a href="https://www.astropy.org" target="_blank" rel="noopener">Astropy</a> &bull; IRSA Science Archive &bull; Layman-Friendly Mode Active
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Inline Core Script -->
+  <script>
+    /* ==========================================================================
+       PROMETHEUS Astronomical Client Engine
+       Synchronizes UI with Flask Backend & Astropy Engine with Offline Fallbacks
+       ========================================================================== */
+
+    let activeTargetId = "l1527";
+    let activeEpochA = "epoch_1";
+    let activeEpochB = "epoch_2";
+    let activeComparisonData = null;
+    let comparisonMode = "side"; // "side", "curtain", "blink", "diff"
+    let experienceMode = "simple"; // "simple" (layman) vs "pro" (astrophysics)
+    
+    let isBlinking = false;
+    let blinkInterval = null;
+    let blinkCurrentEpoch = "A";
+    let blinkHz = 2.0;
+
+    // --- Starfield Canvas Animation ---
+    (function initStarfield() {
+      const canvas = document.getElementById("starfield-canvas");
+      const ctx = canvas.getContext("2d");
+      let stars = [];
+      const numStars = 180;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.3,
+          alpha: Math.random() * 0.8 + 0.2,
+          speed: Math.random() * 0.02 + 0.005,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      function render(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let s of stars) {
+          const currentAlpha = s.alpha + Math.sin(time * s.speed + s.phase) * 0.3;
+          ctx.fillStyle = `rgba(200, 225, 255, ${Math.max(0.1, Math.min(1.0, currentAlpha))})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    })();
+
+    // --- Experience Mode Toggle (Simple Layman vs Pro) ---
+    function setExperienceMode(mode) {
+      experienceMode = mode;
+      const btnSimple = document.getElementById("btn-mode-simple");
+      const btnPro = document.getElementById("btn-mode-pro");
+      const storySection = document.getElementById("layman-story-section");
+      const howToGuide = document.getElementById("how-to-guide");
+      const analogyBoxes = document.querySelectorAll(".metric-analogy-box");
+
+      if (mode === "simple") {
+        btnSimple.className = "exp-btn active";
+        btnPro.className = "exp-btn";
+        storySection.style.display = "block";
+        howToGuide.style.display = "flex";
+        analogyBoxes.forEach(b => b.style.display = "block");
+
+        // Simple Titles
+        document.getElementById("metric-lbl-motion").textContent = "Did It Move in Space?";
+        document.getElementById("metric-lbl-flux").textContent = "Did It Get Brighter or Dimmer?";
+        document.getElementById("metric-lbl-stability").textContent = "Is It Behaving Normally?";
+        document.getElementById("metric-lbl-ice").textContent = "Is There Space Frost & Water?";
+        document.getElementById("lbl-epoch-a").textContent = "Snapshot 1 (Earlier Date)";
+        document.getElementById("lbl-epoch-b").textContent = "Snapshot 2 (Later Date)";
+      } else {
+        btnSimple.className = "exp-btn";
+        btnPro.className = "exp-btn pro-active";
+        storySection.style.display = "block"; // Keep summary accessible
+        howToGuide.style.display = "none";
+        analogyBoxes.forEach(b => b.style.display = "none");
+
+        // Technical Astrophysics Titles
+        document.getElementById("metric-lbl-motion").textContent = "Astrometric Offset (ρ)";
+        document.getElementById("metric-lbl-flux").textContent = "Photometric Delta (ΔF)";
+        document.getElementById("metric-lbl-stability").textContent = "Reduced χ² Spectral Fit";
+        document.getElementById("metric-lbl-ice").textContent = "Ice Column Depth (Δτ)";
+        document.getElementById("lbl-epoch-a").textContent = "Reference Epoch (A)";
+        document.getElementById("lbl-epoch-b").textContent = "Comparison Epoch (B)";
+      }
+    }
+
+    // --- Glossary Modal ---
+    function openGlossaryModal() {
+      document.getElementById("glossary-modal").style.display = "flex";
+    }
+    function closeGlossaryModal() {
+      document.getElementById("glossary-modal").style.display = "none";
+    }
+
+    // --- Benchmark Target Selection ---
+    function selectBenchmarkTarget(targetId) {
+      activeTargetId = targetId;
+      document.querySelectorAll(".target-chip").forEach(chip => {
+        chip.classList.toggle("active", chip.getAttribute("data-target") === targetId);
+      });
+      loadTargetAndCompare();
+    }
+
+    // --- Search Execution ---
+    function executeSearch() {
+      const query = document.getElementById("target-search-input").value.trim();
+      if (!query) return;
+
+      fetch(`/api/search?q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.status === "success") {
+            activeTargetId = res.target.id;
+            updateTargetBanner(res.target);
+            loadTargetAndCompare();
+          } else {
+            alert(res.message || "Celestial object not found.");
+          }
+        })
+        .catch(err => {
+          console.warn("API search offline, using local target match:", err);
+          selectBenchmarkTarget(query.toLowerCase());
+        });
+    }
+
+    document.getElementById("target-search-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") executeSearch();
+    });
+
+    // --- Epoch Dropdowns Changed ---
+    function onEpochChange() {
+      activeEpochA = document.getElementById("epoch-a-select").value;
+      activeEpochB = document.getElementById("epoch-b-select").value;
+      loadTargetAndCompare();
+    }
+
+    // --- Fetch Target & Perform Epoch Comparison ---
+    function loadTargetAndCompare() {
+      const payload = {
+        target_id: activeTargetId,
+        epoch_a: activeEpochA,
+        epoch_b: activeEpochB
+      };
+
+      fetch("/api/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === "success") {
+          activeComparisonData = data.comparison;
+          renderComparison(activeComparisonData);
+        }
+      })
+      .catch(err => {
+        console.warn("Backend API request failed; invoking client-side fallback engine:", err);
+        generateClientSideComparison();
+      });
+
+      // Also fetch target metadata to update hero banner & lightcurve
+      fetch(`/api/target/${activeTargetId}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.status === "success") {
+            updateTargetBanner(res.target);
+            renderLightCurve(res.epochs);
+          }
+        })
+        .catch(() => {});
+    }
+
+    function updateTargetBanner(meta) {
+      document.getElementById("target-category-tag").textContent = meta.category || "Astronomical Object";
+      document.getElementById("target-name").textContent = meta.name;
+      document.getElementById("target-designation").textContent = `${meta.designation} • ${meta.variability_type || ''}`;
+      document.getElementById("target-ra-str").textContent = `${meta.ra_deg.toFixed(4)}°`;
+      document.getElementById("target-dec-str").textContent = `${meta.dec_deg.toFixed(4)}°`;
+      if (meta.proper_motion) {
+        document.getElementById("target-pm-str").textContent = 
+          `μα ${meta.proper_motion.pm_ra_mas} mas/yr, μδ ${meta.proper_motion.pm_dec_mas} mas/yr`;
+      }
+      if (meta.distance_pc) {
+        document.getElementById("target-dist-str").textContent = `${meta.distance_pc} pc (~${Math.round(meta.distance_pc * 3.26)} light-years)`;
+      }
+    }
+
+    // --- Render Comparison Results in UI ---
+    function renderComparison(comp) {
+      const epA = comp.epoch_a;
+      const epB = comp.epoch_b;
+      const ast = comp.astrometry;
+      const phot = comp.photometry;
+      const spec = comp.spectroscopy;
+      const lay = comp.layman_narrative || {};
+
+      // Update Plain-English Story Card
+      if (lay.story) {
+        document.getElementById("story-title").textContent = comp.target.layman_title || comp.target.name;
+        document.getElementById("story-badge-text").textContent = comp.target.layman_badge || "Celestial Target";
+        document.getElementById("story-body").textContent = lay.story;
+        document.getElementById("story-date-diff").textContent = lay.date_comparison || `Comparing ${epA.date} with ${epB.date}`;
+        
+        document.getElementById("story-motion-badge").textContent = lay.motion_badge || "Stationary";
+        document.getElementById("story-motion-desc").textContent = lay.motion_story || "";
+        
+        document.getElementById("story-bright-badge").textContent = lay.bright_badge || "Steady";
+        document.getElementById("story-bright-desc").textContent = lay.bright_story || "";
+        
+        document.getElementById("story-chem-badge").textContent = lay.chem_badge || "Gas Detected";
+        document.getElementById("story-chem-desc").textContent = lay.chem_story || "";
+      }
+
+      // Telescope A Viewport
+      document.getElementById("stage-a-title").textContent = epA.name;
+      document.getElementById("stage-a-date").textContent = `${epA.date}`;
+      document.getElementById("img-epoch-a").src = epA.render;
+      document.getElementById("hud-a-coords").textContent = `RA ${epA.coordinates.ra_hms} Dec ${epA.coordinates.dec_dms}`;
+      document.getElementById("tele-a-flux").textContent = `${epA.total_flux_mjy.toFixed(1)} mJy`;
+      document.getElementById("tele-a-ecliptic").textContent = `${epA.coordinates.ecliptic_lon_deg}°, ${epA.coordinates.ecliptic_lat_deg}°`;
+      document.getElementById("tele-a-galactic").textContent = `${epA.coordinates.galactic_l_deg}°, ${epA.coordinates.galactic_b_deg}°`;
+
+      // Telescope B Viewport
+      document.getElementById("stage-b-title").textContent = epB.name;
+      document.getElementById("stage-b-date").textContent = `${epB.date}`;
+      document.getElementById("stage-b-delta-badge").textContent = `+${Math.round(ast.delta_time_days)} Days Later`;
+      document.getElementById("img-epoch-b").src = epB.render;
+      document.getElementById("hud-b-coords").textContent = `RA ${epB.coordinates.ra_hms} Dec ${epB.coordinates.dec_dms}`;
+      document.getElementById("tele-b-flux").textContent = `${epB.total_flux_mjy.toFixed(1)} mJy`;
+      document.getElementById("tele-b-ecliptic").textContent = `${epB.coordinates.ecliptic_lon_deg}°, ${epB.coordinates.ecliptic_lat_deg}°`;
+      document.getElementById("tele-b-galactic").textContent = `${epB.coordinates.galactic_l_deg}°, ${epB.coordinates.galactic_b_deg}°`;
+
+      // Split Curtain Images & Labels
+      document.getElementById("curtain-img-a").src = epA.render;
+      document.getElementById("curtain-img-b").src = epB.render;
+      document.getElementById("curtain-lbl-a").textContent = epA.name;
+      document.getElementById("curtain-lbl-b").textContent = epB.name;
+
+      // Difference Map
+      document.getElementById("img-diff-map").src = comp.difference_image;
+
+      // Measurable Metrics Cards
+      document.getElementById("metric-separation").textContent = `${ast.separation_arcsec.toFixed(3)}"`;
+      document.getElementById("metric-delta-ra").textContent = `${ast.delta_ra_arcsec >= 0 ? '+' : ''}${ast.delta_ra_arcsec.toFixed(3)}"`;
+      document.getElementById("metric-pa").textContent = `${ast.position_angle_deg.toFixed(1)}° (${ast.position_angle_deg < 90 ? 'NE' : ast.position_angle_deg < 180 ? 'SE' : ast.position_angle_deg < 270 ? 'SW' : 'NW'})`;
+
+      // Photometric Metrics
+      const fluxDeltaEl = document.getElementById("metric-flux-delta");
+      fluxDeltaEl.textContent = `${phot.flux_delta_mjy >= 0 ? '+' : ''}${phot.flux_delta_mjy.toFixed(1)} mJy`;
+      fluxDeltaEl.className = `metric-value-huge ${phot.flux_delta_mjy >= 0 ? 'delta-positive' : 'delta-negative'}`;
+
+      document.getElementById("metric-pct-change").textContent = `${phot.flux_pct_change >= 0 ? '+' : ''}${phot.flux_pct_change.toFixed(2)}%`;
+      document.getElementById("metric-var-index").textContent = phot.variability_index.toFixed(4);
+
+      // Spectroscopy Metrics
+      document.getElementById("metric-chi-sq").textContent = spec.reduced_chi_square.toFixed(2);
+      const chiStatusEl = document.getElementById("metric-chi-status");
+      if (spec.reduced_chi_square < 1.5) {
+        chiStatusEl.textContent = "Normal & Steady";
+        chiStatusEl.style.color = "var(--accent-emerald)";
+      } else if (spec.reduced_chi_square < 5.0) {
+        chiStatusEl.textContent = "Noticeable Fluctuation";
+        chiStatusEl.style.color = "var(--accent-amber)";
+      } else {
+        chiStatusEl.textContent = "Extreme Burst / Change";
+        chiStatusEl.style.color = "var(--accent-rose)";
+      }
+
+      // Render 102-band Spectral Curves
+      renderSpectralChart(spec.spectral_diff, epA.name, epB.name);
+    }
+
+    // --- Mode Switching (Side-by-Side, Curtain, Blink, Difference) ---
+    function setComparisonMode(mode) {
+      comparisonMode = mode;
+      document.querySelectorAll(".mode-btn").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(`btn-mode-${mode}`).classList.add("active");
+
+      const sideStage = document.getElementById("side-by-side-stage");
+      const curtainStage = document.getElementById("split-curtain-container");
+      const blinkToolbar = document.getElementById("blink-toolbar");
+
+      if (mode !== "blink" && isBlinking) {
+        stopBlink();
+      }
+
+      if (mode === "side") {
+        sideStage.style.display = "grid";
+        curtainStage.style.display = "none";
+        blinkToolbar.style.display = "none";
+        document.getElementById("viewport-a").style.display = "flex";
+        document.getElementById("viewport-b").style.display = "flex";
+      } else if (mode === "curtain") {
+        sideStage.style.display = "none";
+        curtainStage.style.display = "block";
+        blinkToolbar.style.display = "none";
+      } else if (mode === "blink") {
+        sideStage.style.display = "grid";
+        curtainStage.style.display = "none";
+        blinkToolbar.style.display = "flex";
+        startBlink();
+      } else if (mode === "diff") {
+        sideStage.style.display = "grid";
+        curtainStage.style.display = "none";
+        blinkToolbar.style.display = "none";
+        document.getElementById("timeline-section").scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    // --- Interactive Split-Curtain Dragging Logic ---
+    (function initCurtainSlider() {
+      const container = document.getElementById("split-curtain-container");
+      const topLayer = document.getElementById("curtain-top-layer");
+      const handle = document.getElementById("curtain-handle");
+      let isDragging = false;
+
+      function updateSlider(clientX) {
+        const rect = container.getBoundingClientRect();
+        let posX = clientX - rect.left;
+        posX = Math.max(0, Math.min(rect.width, posX));
+        const pct = (posX / rect.width) * 100;
+        topLayer.style.width = `${pct}%`;
+        handle.style.left = `${pct}%`;
+      }
+
+      handle.addEventListener("mousedown", () => { isDragging = true; });
+      window.addEventListener("mouseup", () => { isDragging = false; });
+      window.addEventListener("mousemove", (e) => {
+        if (isDragging) updateSlider(e.clientX);
+      });
+
+      handle.addEventListener("touchstart", () => { isDragging = true; });
+      window.addEventListener("touchend", () => { isDragging = false; });
+      window.addEventListener("touchmove", (e) => {
+        if (isDragging && e.touches.length > 0) {
+          updateSlider(e.touches[0].clientX);
+        }
+      });
+    })();
+
+    // --- Blink Comparator Logic ---
+    function startBlink() {
+      isBlinking = true;
+      document.getElementById("blink-icon").textContent = "⏸️";
+      document.getElementById("blink-label").textContent = "Pause Blink";
+      clearInterval(blinkInterval);
+
+      const delayMs = (1.0 / blinkHz) * 1000;
+      blinkInterval = setInterval(() => {
+        const viewportA = document.getElementById("viewport-a");
+        const viewportB = document.getElementById("viewport-b");
+        const statusChip = document.getElementById("blink-active-epoch-tag");
+
+        if (blinkCurrentEpoch === "A") {
+          blinkCurrentEpoch = "B";
+          viewportA.style.opacity = "0.15";
+          viewportB.style.opacity = "1.0";
+          viewportB.style.transform = "scale(1.02)";
+          viewportA.style.transform = "scale(1.0)";
+          statusChip.textContent = `SHOWING: PHOTO 2 (OCTOBER 2025)`;
+          statusChip.style.color = "var(--accent-rose)";
+          statusChip.style.background = "rgba(244, 63, 94, 0.2)";
+        } else {
+          blinkCurrentEpoch = "A";
+          viewportA.style.opacity = "1.0";
+          viewportB.style.opacity = "0.15";
+          viewportA.style.transform = "scale(1.02)";
+          viewportB.style.transform = "scale(1.0)";
+          statusChip.textContent = `SHOWING: PHOTO 1 (APRIL 2025)`;
+          statusChip.style.color = "var(--accent-cyan)";
+          statusChip.style.background = "rgba(56, 189, 248, 0.2)";
+        }
+      }, delayMs);
+    }
+
+    function stopBlink() {
+      isBlinking = false;
+      clearInterval(blinkInterval);
+      document.getElementById("blink-icon").textContent = "▶️";
+      document.getElementById("blink-label").textContent = "Play Blink";
+      const viewportA = document.getElementById("viewport-a");
+      const viewportB = document.getElementById("viewport-b");
+      viewportA.style.opacity = "1.0";
+      viewportB.style.opacity = "1.0";
+      viewportA.style.transform = "scale(1.0)";
+      viewportB.style.transform = "scale(1.0)";
+    }
+
+    function toggleBlinkPlay() {
+      if (isBlinking) stopBlink();
+      else startBlink();
+    }
+
+    function updateBlinkSpeed(val) {
+      blinkHz = parseFloat(val);
+      document.getElementById("blink-speed-val").textContent = `${blinkHz.toFixed(1)} times per sec`;
+      if (isBlinking) startBlink();
+    }
+
+    // --- Interactive 102-Band Spectrophotometry Canvas Chart ---
+    function renderSpectralChart(spectralData, labelA, labelB) {
+      const canvas = document.getElementById("spectral-canvas");
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      const padLeft = 65;
+      const padRight = 30;
+      const padTop = 30;
+      const padBottom = 45;
+
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const minWave = 0.75;
+      const maxWave = 5.00;
+
+      let maxFlux = 0.001;
+      let minFlux = 0.0;
+      spectralData.forEach(d => {
+        if (d.flux_epoch_a_mjy > maxFlux) maxFlux = d.flux_epoch_a_mjy;
+        if (d.flux_epoch_b_mjy > maxFlux) maxFlux = d.flux_epoch_b_mjy;
+      });
+      maxFlux *= 1.15;
+
+      function waveToX(w) {
+        return padLeft + ((w - minWave) / (maxWave - minWave)) * plotW;
+      }
+      function fluxToY(f) {
+        return padTop + plotH - ((f - minFlux) / (maxFlux - minFlux)) * plotH;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid lines
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.font = "10px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#64748b";
+
+      for (let w = 1.0; w <= 5.0; w += 0.5) {
+        const x = waveToX(w);
+        ctx.beginPath();
+        ctx.moveTo(x, padTop);
+        ctx.lineTo(x, padTop + plotH);
+        ctx.stroke();
+        ctx.fillText(`${w.toFixed(1)} \u03BCm`, x - 14, padTop + plotH + 18);
+      }
+
+      for (let i = 0; i <= 4; i++) {
+        const f = minFlux + (i / 4) * (maxFlux - minFlux);
+        const y = fluxToY(f);
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(padLeft + plotW, y);
+        ctx.stroke();
+        ctx.fillText(`${f.toFixed(0)} mJy`, 8, y + 3);
+      }
+
+      // Draw Ice Absorption Bands Shading
+      const iceBands = [
+        { name: "💧 Water Ice (H₂O)", wave: 3.05, fwhm: 0.35, color: "rgba(56, 189, 248, 0.15)" },
+        { name: "🌿 Methanol", wave: 3.53, fwhm: 0.12, color: "rgba(52, 211, 153, 0.12)" },
+        { name: "🧊 Dry Ice (CO₂)", wave: 4.27, fwhm: 0.15, color: "rgba(251, 191, 36, 0.18)" },
+        { name: "❄️ CO Ice", wave: 4.67, fwhm: 0.09, color: "rgba(168, 85, 247, 0.16)" }
+      ];
+
+      iceBands.forEach(b => {
+        const x1 = waveToX(b.wave - b.fwhm / 2);
+        const x2 = waveToX(b.wave + b.fwhm / 2);
+        ctx.fillStyle = b.color;
+        ctx.fillRect(x1, padTop, x2 - x1, plotH);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText(b.name, (x1 + x2) / 2 - 20, padTop + 14);
+      });
+
+      // 1. Draw Epoch A Curve (Cyan)
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      spectralData.forEach((d, idx) => {
+        const x = waveToX(d.wavelength_um);
+        const y = fluxToY(d.flux_epoch_a_mjy);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // 2. Draw Epoch B Curve (Rose)
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      spectralData.forEach((d, idx) => {
+        const x = waveToX(d.wavelength_um);
+        const y = fluxToY(d.flux_epoch_b_mjy);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      spectralData.forEach(d => {
+        const x = waveToX(d.wavelength_um);
+        const yA = fluxToY(d.flux_epoch_a_mjy);
+        const yB = fluxToY(d.flux_epoch_b_mjy);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(x - 1.5, yA - 1.5, 3, 3);
+
+        ctx.fillStyle = "#f43f5e";
+        ctx.fillRect(x - 1.5, yB - 1.5, 3, 3);
+      });
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px 'Inter', sans-serif";
+      ctx.fillText("Infrared Heat Color (Wavelength \u03BB in Microns)", padLeft + plotW / 2 - 100, padTop + plotH + 36);
+    }
+
+    function explainChemicalFeature(chem) {
+      if (chem === 'h2o') {
+        alert("💧 Frozen Water Ice (H₂O) at 3.05 µm:\n\n" +
+              "Notice the valley in the line around 3.05 microns? Cold water ice crystals in space absorb that specific wavelength of light!\n\n" +
+              "Why it matters: Scientists study this to see how water gets packed into comets and asteroid belts, potentially seeding future oceans on new planets!");
+      } else if (chem === 'co2') {
+        alert("🧊 Carbon Dioxide Dry Ice (CO₂) at 4.27 µm:\n\n" +
+              "This sharp dip indicates frozen dry ice! In the freezing cold of interstellar clouds (-250°C), carbon dioxide freezes directly onto grains of stardust.");
+      } else if (chem === 'co') {
+        alert("❄️ Carbon Monoxide Ice (CO) at 4.67 µm:\n\n" +
+              "Carbon monoxide freezes at an extraordinarily cold temperature (around -245°C). Detecting it means we are looking at pristine, undisturbed cosmic ice that has never been warmed up by starlight!");
+      } else if (chem === 'ch3oh') {
+        alert("🌿 Methanol (Space Alcohol) at 3.53 µm:\n\n" +
+              "Methanol is an organic molecule that acts as a vital stepping stone toward amino acids and the chemistry of life!");
+      }
+    }
+
+    // --- Multi-Epoch Light Curve Canvas ---
+    function renderLightCurve(epochs) {
+      const canvas = document.getElementById("lightcurve-canvas");
+      if (!canvas || !epochs || epochs.length === 0) return;
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const padL = 50, padR = 30, padT = 20, padB = 35;
+      const pW = w - padL - padR;
+      const pH = h - padT - padB;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const fluxes = epochs.map(e => e.total_flux_mjy);
+      const minF = Math.min(...fluxes) * 0.85;
+      const maxF = Math.max(...fluxes) * 1.15;
+
+      function getX(idx) {
+        return padL + (idx / (epochs.length - 1)) * pW;
+      }
+      function getY(val) {
+        return padT + pH - ((val - minF) / (maxF - minF + 1e-4)) * pH;
+      }
+
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      epochs.forEach((ep, i) => {
+        const x = getX(i);
+        const y = getY(ep.total_flux_mjy);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      epochs.forEach((ep, i) => {
+        const x = getX(i);
+        const y = getY(ep.total_flux_mjy);
+
+        ctx.fillStyle = "rgba(56, 189, 248, 0.2)";
+        ctx.beginPath();
+        ctx.arc(x, y, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "10px 'JetBrains Mono', monospace";
+        ctx.fillText(`${ep.total_flux_mjy.toFixed(0)} mJy`, x - 18, y - 12);
+        ctx.fillStyle = "#64748b";
+        ctx.fillText(`Pass ${i + 1}`, x - 15, padT + pH + 18);
+      });
+    }
+
+    // --- Scientific Actions ---
+    function exportDataCSV() {
+      window.location.href = `/api/export/${activeTargetId}/csv`;
+    }
+
+    function copyAstropySnippet() {
+      const code = `# PROMETHEUS - SPHEREx Reproducible Astropy Analysis
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.table import Table
+
+# Initialize Coordinates
+target = SkyCoord(ra=69.97458*u.deg, dec=26.05272*u.deg, frame='icrs')
+print(f"J2000 Coordinates: {target.to_string('hmsdms')}")
+print(f"Galactic: {target.galactic}")
+
+# Load multi-epoch SPHEREx spectrophotometry
+url = "http://127.0.0.1:5000/api/export/${activeTargetId}/csv"
+spec_table = Table.read(url, format='ascii.csv', header_start=4)
+print(f"Loaded {len(spec_table)} SPHEREx channels across 6 LVF bands")`;
+
+      navigator.clipboard.writeText(code).then(() => {
+        alert("Astropy Python script snippet copied to clipboard!\nPaste in Jupyter or Python to reproduce the calculations locally.");
+      });
+    }
+
+    // --- Client-Side Fallback Generator ---
+    function generateClientSideComparison() {
+      const mockComp = {
+        target: {
+          id: activeTargetId,
+          name: activeTargetId.toUpperCase(),
+          layman_title: "The Baby Star in an Ice Blanket",
+          layman_badge: "Baby Sun & Frozen Water"
+        },
+        layman_narrative: {
+          story: "A newborn baby star surrounded by giant clouds of real frozen water ice and space frost. Over 6 months, its brightness flickered as it fed on cold dust clouds.",
+          date_comparison: "Comparing April 2025 with October 2025 (6 Months Later)",
+          motion_badge: "Stationary Position",
+          motion_story: "Anchor steady: It did not budge in position relative to distant background stars.",
+          bright_badge: "+8.0% Brighter",
+          bright_story: "Energy surge: The star got noticeably brighter between dates, like turning up a lamp dimmer switch.",
+          chem_badge: "Frozen Water Ice Detected",
+          chem_story: "Just like ice cubes in your freezer, billions of frozen water crystals are floating in cold clouds around this star!"
+        },
+        epoch_a: {
+          name: "Epoch 1 (April 15, 2025)",
+          date: "2025-04-15",
+          mjd: 60780.0,
+          total_flux_mjy: 850.0,
+          render: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256' style='background:%23050812'><circle cx='128' cy='128' r='20' fill='%23ff9900'/><circle cx='128' cy='128' r='6' fill='%23ffffff'/></svg>",
+          coordinates: { ra_hms: "04h39m53.9s", dec_dms: "+26°03'09.8\"", ecliptic_lon_deg: 71.4, ecliptic_lat_deg: 4.8, galactic_l_deg: 175.2, galactic_b_deg: -16.8 }
+        },
+        epoch_b: {
+          name: "Epoch 2 (October 15, 2025)",
+          date: "2025-10-15",
+          mjd: 60963.0,
+          total_flux_mjy: 918.0,
+          render: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256' style='background:%23050812'><circle cx='129' cy='127' r='22' fill='%23ffaa22'/><circle cx='129' cy='127' r='7' fill='%23ffffff'/></svg>",
+          coordinates: { ra_hms: "04h39m53.9s", dec_dms: "+26°03'09.7\"", ecliptic_lon_deg: 71.4, ecliptic_lat_deg: 4.8, galactic_l_deg: 175.2, galactic_b_deg: -16.8 }
+        },
+        astrometry: {
+          separation_arcsec: 0.009,
+          delta_ra_arcsec: 0.003,
+          delta_dec_arcsec: -0.009,
+          position_angle_deg: 162.5,
+          delta_time_days: 183.0,
+          significance_sigma: 0.06
+        },
+        photometry: {
+          flux_delta_mjy: 68.0,
+          flux_pct_change: 8.0,
+          variability_index: 0.0769
+        },
+        spectroscopy: {
+          reduced_chi_square: 1.14,
+          spectral_diff: Array.from({length: 102}, (_, i) => {
+            const w = 0.75 + (i / 101) * 4.25;
+            const dip = Math.exp(-0.5 * ((w - 3.05)/0.2)**2) * 200;
+            return {
+              wavelength_um: parseFloat(w.toFixed(3)),
+              flux_epoch_a_mjy: 500 + Math.sin(w)*80 - dip,
+              flux_epoch_b_mjy: 540 + Math.sin(w)*85 - dip*0.95
+            };
+          })
+        },
+        difference_image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' style='background:%23000000'><circle cx='64' cy='64' r='14' fill='%23f43f5e'/></svg>"
+      };
+      activeComparisonData = mockComp;
+      renderComparison(mockComp);
+    }
+
+    // --- Initial Boot ---
+    window.addEventListener("DOMContentLoaded", () => {
+      setExperienceMode("simple");
+      loadTargetAndCompare();
+    });
+  </script>
+</body>
+</html>

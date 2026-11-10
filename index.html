@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPHEREx Discovery Engine | Time-Domain Astronomical Survey</title>
+  <meta name="description" content="NASA SPHEREx 102-Band Multi-Epoch Sky Discovery Engine for Citizen Science, Moving Objects & Variable Star Tracking">
+  
+  <!-- Modern Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Vector Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN for High-Performance 102-Band SED Graphing -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-body">
+
+  <!-- Top Mission Control Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-badge">
+        <i data-lucide="scan" class="brand-icon"></i>
+      </div>
+      <div class="brand-meta">
+        <div class="brand-title-wrap">
+          <h1 class="brand-title">SPHEREx Discovery Engine</h1>
+          <span class="mission-tag">NASA QR2 LEVEL-2</span>
+          <span class="citizen-tag"><i data-lucide="users" class="inline-icon"></i> CITIZEN SCIENCE</span>
+        </div>
+        <p class="brand-sub">All-Sky Multi-Epoch Comparator, 102-Band Slicer & Moving Object Hunter</p>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Coordinates HUD -->
+    <div class="header-telemetry font-mono">
+      <div class="hud-item">
+        <span class="hud-label">TARGET:</span>
+        <span id="hud-field-name" class="hud-val text-cyan">Barnard's Star</span>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-item">
+        <span class="hud-label">RA/DEC:</span>
+        <span id="hud-coords" class="hud-val text-slate">17h 57m 48.5s | +04° 41' 36"</span>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-item">
+        <span class="hud-label">CADENCE:</span>
+        <span class="hud-val text-amber">6-Mo Baseline (Δt=182.5d)</span>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-item">
+        <span class="hud-label">FLAGS:</span>
+        <span id="hud-quality-flag" class="hud-val text-emerald">QUAL_OK (0x00)</span>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-right">
+      <button id="btn-3d-story" class="btn btn-secondary" onclick="window.location.href='landing.html'" title="Return to 3D Scrollytelling Journey & Layman Mode">
+        <i data-lucide="sparkles"></i>
+        <span>3D Story</span>
+      </button>
+      <button id="btn-share-url" class="btn btn-secondary" title="Copy Direct Coordinate URL to Clipboard">
+        <i data-lucide="link"></i>
+        <span>Share URL</span>
+      </button>
+      <button id="btn-export-dossier" class="btn btn-primary" title="Export Certified Discovery Dossier (JSON)">
+        <i data-lucide="file-down"></i>
+        <span>Export Report</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Three-Column CSS Grid Workspace -->
+  <div class="workspace-grid">
+
+    <!-- ================================================================= -->
+    <!-- LEFT COLUMN (20%): CONTROL SUITE & ASTRONOMICAL FILTERS           -->
+    <!-- ================================================================= -->
+    <aside class="sidebar-left">
+      
+      <!-- Coordinate Search Suite (RA / Dec Query) -->
+      <section class="control-panel highlight-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="search" class="panel-icon text-cyan"></i>
+            <span class="panel-label text-cyan">Coordinate Query</span>
+          </div>
+          <span class="url-badge font-mono">URL SYNC</span>
+        </div>
+        <p class="panel-caption">
+          Search any sky patch by Right Ascension and Declination:
+        </p>
+        <div class="coord-input-grid font-mono">
+          <div class="input-field">
+            <label for="input-ra" class="input-label">RA (hms / deg)</label>
+            <input type="text" id="input-ra" class="form-input" placeholder="e.g. 17h57m48.5s">
+          </div>
+          <div class="input-field">
+            <label for="input-dec" class="input-label">Dec (dms / deg)</label>
+            <input type="text" id="input-dec" class="form-input" placeholder="e.g. +04d41m36s">
+          </div>
+        </div>
+        <button id="btn-query-coords" class="btn btn-query">
+          <i data-lucide="crosshair"></i>
+          <span>Locate Sky Patch</span>
+        </button>
+      </section>
+
+      <!-- NASA Benchmark Test Targets (NASA Challenge Requirement) -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="compass" class="panel-icon"></i>
+            <label for="sky-tile-select" class="panel-label">Benchmark Targets</label>
+          </div>
+          <span class="target-badge font-mono">NASA TEST SUITE</span>
+        </div>
+        <div class="custom-select-wrap">
+          <select id="sky-tile-select" class="form-select font-mono">
+            <optgroup label="NASA Challenge Benchmark Targets">
+              <option value="barnard" selected>🌟 Barnard's Star (Record Proper Motion)</option>
+              <option value="epsilonIndi">🌟 Epsilon Indi B (Binary Brown Dwarfs)</option>
+              <option value="wise0855">🌟 WISE 0855-0714 (Coldest Sub-stellar Dwarf)</option>
+              <option value="rwAurigae">🌟 RW Aurigae (T Tauri Variable Star)</option>
+              <option value="rDraconis">🌟 R Draconis (Mira-type Pulsating Variable)</option>
+            </optgroup>
+            <optgroup label="Outer Solar System & Real FITS">
+              <option value="realSpherex">📁 SPHEREx QR2 FITS (2026W08_2A_0157_1)</option>
+              <option value="planetX">🪐 Planet X Candidate (SPX-2026-X1)</option>
+              <option value="sedna">☄️ 90377 Sedna (Detached Outer Kuiper Body)</option>
+            </optgroup>
+          </select>
+        </div>
+      </section>
+
+      <!-- Field of View (FOV) Selector -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="zoom-in" class="panel-icon"></i>
+            <span class="panel-label">Field of View (FOV)</span>
+          </div>
+          <span id="fov-readout" class="stretch-badge font-mono">15' (Standard)</span>
+        </div>
+        <div class="fov-button-group font-mono">
+          <button class="btn-fov" data-fov="5">5' <small>(Fine)</small></button>
+          <button class="btn-fov active" data-fov="15">15' <small>(Std)</small></button>
+          <button class="btn-fov" data-fov="30">30' <small>(Wide)</small></button>
+          <button class="btn-fov" data-fov="60">60' <small>(Survey)</small></button>
+        </div>
+        <p class="panel-caption">
+          Wide FOV tracks fast solar system comets; narrow FOV resolves close brown dwarf binaries.
+        </p>
+      </section>
+
+      <!-- Comparison Engine Modes (6 Methods: Blink, Subtract, Swipe, RGB, Dissolve, Coadd) -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="layers" class="panel-icon text-cyan"></i>
+            <span class="panel-label">Comparison Methods</span>
+          </div>
+          <span class="url-badge font-mono">6 MODES</span>
+        </div>
+        
+        <div class="mode-button-group comparison-modes-grid">
+          <button id="btn-mode-blink" class="btn-mode active" data-mode="blink" title="Blink: alternates epochs like Clyde Tombaugh">
+            <i data-lucide="play" class="btn-mode-icon"></i>
+            <span>Blink</span>
+          </button>
+          <button id="btn-mode-diff" class="btn-mode" data-mode="diff" title="Subtract: E2 - E1 isolates motion into a dipole">
+            <i data-lucide="sparkles" class="btn-mode-icon"></i>
+            <span>Subtract</span>
+          </button>
+          <button id="btn-mode-swipe" class="btn-mode" data-mode="swipe" title="Swipe: interactive split curtain wipe slider">
+            <i data-lucide="split" class="btn-mode-icon"></i>
+            <span>Swipe</span>
+          </button>
+          <button id="btn-mode-rgb" class="btn-mode" data-mode="rgb" title="RGB Anaglyph: E1=Red, E2=Cyan; moving objects pop in neon colors">
+            <i data-lucide="palette" class="btn-mode-icon"></i>
+            <span>RGB Color</span>
+          </button>
+          <button id="btn-mode-fade" class="btn-mode" data-mode="fade" title="Dissolve: smooth manual alpha cross-fade">
+            <i data-lucide="sun-medium" class="btn-mode-icon"></i>
+            <span>Dissolve</span>
+          </button>
+          <button id="btn-mode-stack" class="btn-mode" data-mode="stack" title="Add / Coadd: stacks epochs to boost signal-to-noise">
+            <i data-lucide="plus-circle" class="btn-mode-icon"></i>
+            <span>Coadd</span>
+          </button>
+        </div>
+
+        <!-- 1. Dynamic Blink Rate Slider -->
+        <div id="blink-controls" class="sub-control-block">
+          <div class="slider-meta font-mono">
+            <span>Flip Period (Video Cadence):</span>
+            <span id="blink-rate-display" class="slider-val text-cyan">0.50 s</span>
+          </div>
+          <input type="range" id="blink-rate-slider" min="150" max="1500" value="500" step="50" class="custom-slider">
+          <div class="slider-ticks font-mono">
+            <span>0.15s (Rapid)</span>
+            <span>0.50s (Std)</span>
+            <span>1.50s (Slow)</span>
+          </div>
+        </div>
+
+        <!-- 2. Interactive Swipe Curtain Slider -->
+        <div id="swipe-controls" class="sub-control-block hidden">
+          <div class="slider-meta font-mono">
+            <span>Curtain Wipe Position:</span>
+            <span id="swipe-pos-display" class="slider-val text-cyan">50%</span>
+          </div>
+          <input type="range" id="swipe-slider" min="0" max="100" value="50" class="custom-slider">
+          <div class="slider-ticks font-mono">
+            <span>100% E1 (Left)</span>
+            <span>50/50 Split</span>
+            <span>100% E2 (Right)</span>
+          </div>
+          <p class="panel-caption font-sans">
+            Tip: Drag the slider or click &amp; drag directly across the canvas to wipe between epochs.
+          </p>
+        </div>
+
+        <!-- 3. Manual Dissolve / Cross-fade Slider -->
+        <div id="fade-controls" class="sub-control-block hidden">
+          <div class="slider-meta font-mono">
+            <span>Epoch Alpha Dissolve:</span>
+            <span id="fade-pos-display" class="slider-val text-cyan">50% E1 / 50% E2</span>
+          </div>
+          <input type="range" id="fade-slider" min="0" max="100" value="50" class="custom-slider">
+          <div class="slider-ticks font-mono">
+            <span>0% (Epoch 1)</span>
+            <span>50% Blend</span>
+            <span>100% (Epoch 2)</span>
+          </div>
+        </div>
+
+        <!-- 4. RGB Anaglyph Legend -->
+        <div id="rgb-controls" class="sub-control-block hidden">
+          <div class="anaglyph-legend font-mono">
+            <span class="legend-item"><span class="legend-dot red"></span> Red: E1</span>
+            <span class="legend-item"><span class="legend-dot cyan"></span> Cyan: E2</span>
+            <span class="legend-item"><span class="legend-dot white"></span> White: Static</span>
+          </div>
+          <p class="panel-caption font-sans">
+            Stationary sources combine into white; moving candidates pop into vivid paired Red &amp; Cyan beacons!
+          </p>
+        </div>
+      </section>
+
+      <!-- Survey Mission Overlays (Gaia & WISE Multi-Mission Cross-Matching) -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="globe" class="panel-icon text-indigo"></i>
+            <span class="panel-label">Multi-Mission Overlays</span>
+          </div>
+          <span class="mission-pill font-mono">CDS / ESA</span>
+        </div>
+        <div class="overlay-toggles font-mono">
+          <label class="toggle-row">
+            <input type="checkbox" id="overlay-gaia" class="custom-checkbox">
+            <span>Gaia DR3 Proper-Motion Vectors</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="overlay-wise" class="custom-checkbox">
+            <span>NASA allWISE IR Contour Reference</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="overlay-reticle" class="custom-checkbox" checked>
+            <span>Astrometric Target Reticle</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- 6-Detector Array Coaddition (NASA Consideration: Boost S/N) -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="cpu" class="panel-icon text-amber"></i>
+            <span class="panel-label">6 Detector Arrays Coadd</span>
+          </div>
+          <span id="coadd-status" class="detector-badge font-mono">6 ARRAYS SUMMED</span>
+        </div>
+        <div class="detector-chips font-mono">
+          <span class="chip active">Det 1 <small>(SWIR)</small></span>
+          <span class="chip active">Det 2 <small>(SWIR)</small></span>
+          <span class="chip active">Det 3 <small>(SWIR)</small></span>
+          <span class="chip active">Det 4 <small>(MWIR)</small></span>
+          <span class="chip active">Det 5 <small>(MWIR)</small></span>
+          <span class="chip active">Det 6 <small>(MWIR)</small></span>
+        </div>
+        <p class="panel-caption">
+          Coadds flux across all 6 detector focal arrays, improving point-source S/N by up to 2.4× (√6).
+        </p>
+      </section>
+
+      <!-- FITS Histogram Stretch & Dynamic Range Filters -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="sliders" class="panel-icon"></i>
+            <span class="panel-label">Histogram Stretch</span>
+          </div>
+          <span class="stretch-badge font-mono">Asinh / ZScale</span>
+        </div>
+
+        <div class="sub-control-block">
+          <div class="slider-meta font-mono">
+            <span>Black Point (Cut-off):</span>
+            <span id="black-cut-val" class="slider-val">12%</span>
+          </div>
+          <input type="range" id="black-cut-slider" min="0" max="45" value="12" class="custom-slider">
+        </div>
+
+        <div class="sub-control-block">
+          <div class="slider-meta font-mono">
+            <span>White Point (Peak):</span>
+            <span id="white-cut-val" class="slider-val">88%</span>
+          </div>
+          <input type="range" id="white-cut-slider" min="50" max="100" value="88" class="custom-slider">
+        </div>
+
+        <div class="checkbox-row">
+          <label for="check-invert" class="checkbox-label">Invert Grayscale (Astronomical Negative)</label>
+          <input type="checkbox" id="check-invert" class="custom-checkbox">
+        </div>
+      </section>
+
+      <!-- S/N Threshold Detection Gate -->
+      <section class="control-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="shield-alert" class="panel-icon"></i>
+            <span class="panel-label">S/N Threshold Gate</span>
+          </div>
+          <span id="sn-threshold-val" class="sn-badge font-mono">3.5σ</span>
+        </div>
+        <input type="range" id="sn-threshold-slider" min="1.0" max="8.0" step="0.5" value="3.5" class="custom-slider">
+      </section>
+
+      <!-- Citizen Science Candidate Tagging -->
+      <section class="control-panel action-panel">
+        <button id="btn-tag-candidate" class="btn btn-tag">
+          <i data-lucide="bookmark-plus"></i>
+          <span>Tag Shifting Candidate</span>
+        </button>
+
+        <div class="discovery-ledger font-mono">
+          <div class="ledger-row">
+            <span>Flagged Discoveries:</span>
+            <span id="ledger-flagged-count" class="text-cyan font-bold">0</span>
+          </div>
+          <div class="ledger-row">
+            <span>Target Motion:</span>
+            <span id="ledger-drift-rate" class="text-amber font-bold">10.37 "/yr</span>
+          </div>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ================================================================= -->
+    <!-- CENTER COLUMN (50%): CELESTIAL CANVAS & COMPARATOR VIEWPORT       -->
+    <!-- ================================================================= -->
+    <main class="viewport-center">
+      
+      <!-- Top Image Viewport Coordinates & Status Bar -->
+      <div class="viewport-hud font-mono">
+        <div class="hud-cluster">
+          <span class="hud-status-dot pulse-animation"></span>
+          <span id="viewport-epoch-title" class="hud-epoch-text text-cyan">EPOCH 1 (2025-A BASELINE)</span>
+          <span class="hud-pipe">|</span>
+          <span id="viewport-fov-title" class="text-slate-muted">FOV: 15' × 15'</span>
+          <span class="hud-pipe">|</span>
+          <span id="viewport-meta-flags" class="meta-tag">FLAG: 0x00 (UNCONTAMINATED)</span>
+        </div>
+
+        <div class="hud-cluster">
+          <span class="text-slate-muted">CURSOR:</span>
+          <span id="cursor-pos-readout" class="text-slate font-bold">[X: --, Y: --]</span>
+          <span class="text-slate-muted">FLUX:</span>
+          <span id="cursor-flux-readout" class="text-amber font-bold">-- MJy/sr</span>
+        </div>
+      </div>
+
+      <!-- Astronomical Canvas Container -->
+      <div class="canvas-stage" id="canvas-stage">
+        <canvas id="astronomical-canvas" width="512" height="512" class="astronomical-canvas"></canvas>
+
+        <!-- Dynamic Candidate Reticle Overlay -->
+        <div id="target-reticle" class="target-reticle hidden">
+          <div class="reticle-ring-outer"></div>
+          <div class="reticle-ring-inner"></div>
+          <div class="reticle-crosshair-h"></div>
+          <div class="reticle-crosshair-v"></div>
+          <div id="reticle-tag" class="reticle-callout font-mono">
+            Candidate Target
+          </div>
+        </div>
+
+        <!-- Mode Indicator Badge -->
+        <div id="diff-indicator-badge" class="diff-badge font-mono hidden">
+          <i data-lucide="diff" class="diff-badge-icon"></i>
+          <span id="diff-badge-text">PIXEL SUBTRACTION: ΔI = (EPOCH 2 − EPOCH 1)</span>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- RIGHT COLUMN (30%): CANDIDATE TELEMETRY & 102-BAND SED CHART       -->
+    <!-- ================================================================= -->
+    <aside class="sidebar-right">
+      
+      <!-- Target Dossier Details Panel -->
+      <section class="telemetry-panel">
+        <div class="panel-header justify-between border-bottom">
+          <div class="flex items-center gap-2">
+            <i data-lucide="activity" class="panel-icon text-cyan"></i>
+            <h2 class="telemetry-title">Candidate Telemetry</h2>
+          </div>
+          <span id="telemetry-class-badge" class="class-badge font-mono">
+            HIGH PROPER-MOTION STAR
+          </span>
+        </div>
+
+        <div class="telemetry-grid font-mono">
+          <div class="telemetry-card">
+            <span class="telemetry-k">Target Name / ID</span>
+            <span id="tel-id" class="telemetry-v text-white">Barnard's Star (GJ 699)</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-k">Equatorial Coordinates</span>
+            <span id="tel-coords" class="telemetry-v text-slate">17h 57m 48.5s | +04° 41' 36"</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-k">Proper Motion (μ)</span>
+            <span id="tel-motion" class="telemetry-v text-amber font-bold">10.37 arcsec / yr</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-k">Heliocentric Distance</span>
+            <span id="tel-dist" class="telemetry-v text-cyan font-bold">5.96 Light Years</span>
+          </div>
+          <div class="telemetry-card full-width">
+            <span class="telemetry-k">Time-Baseline Coordinate Shift</span>
+            <span id="tel-shift" class="telemetry-v text-white font-bold">5.18 arcsec / 0.5 yr (10.4 px)</span>
+          </div>
+          <div class="telemetry-card full-width">
+            <span class="telemetry-k">Quality & Contamination Flags</span>
+            <span id="tel-flags" class="telemetry-v text-emerald font-mono">0x00: Clean Point Source (No Zodi or Moon Glare)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 102-Band Spectral Energy Distribution (SED) Chart Panel -->
+      <section class="sed-chart-panel">
+        <div class="panel-header justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="bar-chart-2" class="panel-icon text-amber"></i>
+            <span class="panel-label">102-Band SED Extracted Spectrum</span>
+          </div>
+          <span id="sed-feature-pill" class="feature-pill font-mono">
+            M4V Cold Photosphere
+          </span>
+        </div>
+
+        <!-- Chart.js Canvas Host -->
+        <div class="chart-canvas-wrapper">
+          <canvas id="sed-chart-canvas"></canvas>
+        </div>
+
+        <p class="chart-caption font-sans">
+          Generated on-the-fly across SPHEREx's 102 near-IR channels (0.75 – 5.00 µm). Shows diagnostic absorption signatures (CH4, H2O, CO) or variability amplitude.
+        </p>
+      </section>
+
+      <!-- Astrophysical Validation Summary -->
+      <section class="validation-panel">
+        <div class="flex items-center gap-1.5 mb-1">
+          <i data-lucide="check-circle-2" class="panel-icon text-emerald"></i>
+          <span class="panel-label">NASA Target Verification & History</span>
+        </div>
+        <p id="validation-report-text" class="validation-body font-sans">
+          Fastest proper-motion star in the night sky. Discovered in 1916 by E.E. Barnard using early photographic blink comparison plates. SPHEREx resolves its near-infrared molecular band profile with zero stellar flare contamination.
+        </p>
+      </section>
+
+    </aside>
+
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- BOTTOM ROW (FULL WIDTH): SPHEREx 102 SPECTRAL CHANNELS SLICER RAIL -->
+  <!-- =================================================================== -->
+  <footer class="app-footer">
+    <div class="footer-meta">
+      <div class="flex items-center gap-2">
+        <i data-lucide="sliders-horizontal" class="footer-icon text-cyan"></i>
+        <span class="footer-title">SPHEREx 102 Spectral Channels Slicer</span>
+        <span class="footer-range-tag font-mono">0.75 µm — 5.00 µm</span>
+      </div>
+
+      <div class="footer-readout font-mono">
+        <span class="readout-part">ACTIVE CHANNEL: <strong id="rail-channel-idx" class="text-cyan">Channel 48 / 102</strong></span>
+        <span class="readout-sep">|</span>
+        <span class="readout-part">WAVELENGTH (λ): <strong id="rail-wavelength-val" class="text-amber">2.45 µm</strong></span>
+        <span class="readout-sep">|</span>
+        <span class="readout-part">DETECTOR ARRAY: <strong id="rail-detector-name" class="text-white">Array 3 (MWIR)</strong></span>
+      </div>
+    </div>
+
+    <!-- 102 Channel Continuous Range Slider -->
+    <div class="spectral-rail-wrap">
+      <input type="range" id="spectral-channel-slider" min="1" max="102" value="48" class="spectral-rail-slider">
+      <div class="spectral-tick-labels font-mono">
+        <span>0.75 µm (Array 1: SWIR)</span>
+        <span>1.50 µm (Array 2: Water)</span>
+        <span>2.45 µm (Array 3: NIR)</span>
+        <span>3.30 µm (Array 4: CH4)</span>
+        <span>4.20 µm (Array 5: CO2)</span>
+        <span>5.00 µm (Array 6: MWIR Peak)</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
