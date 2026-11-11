@@ -36,6 +36,16 @@ def compare_css():
     return send_from_directory(".", "compare.css", mimetype="text/css")
 
 
+@app.route("/citizen_engine.js")
+def citizen_engine_js():
+    return send_from_directory(".", "citizen_engine.js", mimetype="application/javascript")
+
+
+@app.route("/citizen_agent.js")
+def citizen_agent_js():
+    return send_from_directory(".", "citizen_agent.js", mimetype="application/javascript")
+
+
 @app.route("/api/status", methods=["GET"])
 def api_status():
     """Returns NASA SPHEREx mission status & orbital telemetry."""

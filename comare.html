@@ -3,1312 +3,1004 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PROMETHEUS • NASA SPHEREx Astronomical Observation & Comparison Engine</title>
+  <title>PROMETHEUS • Citizen Explorer — Target Picker & Sky Comparison Studio</title>
   <link rel="stylesheet" href="compare.css">
-  <link rel="stylesheet" href="/compare.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- Background Space Canvas & Glow -->
   <canvas id="starfield-canvas"></canvas>
-  <div class="cosmic-nebula-glow"></div>
+  <div class="cosmic-glow"></div>
 
-  <div class="app-container">
+  <div class="app-shell">
 
-    <!-- Header & User Understanding Bar -->
-    <header class="header-bar">
-      <div class="brand-section">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-          </svg>
+    <!-- ======================================================================
+         STEP 1 VIEW: PICK A TARGET FIRST ("Select Star A to see differences over time")
+         ====================================================================== -->
+    <section id="target-picker-view">
+      <header class="top-nav-bar">
+        <div class="nav-left-group">
+          <a href="index.html" class="nav-btn" title="Back to Landing Page">
+            <span>←</span> Back to Home
+          </a>
+          <span class="step-indicator-pill">STEP 1 OF 2 · PICK YOUR SPACE TARGET</span>
         </div>
-        <div class="brand-title-wrap">
-          <h1>PROMETHEUS</h1>
-          <div class="brand-subtitle">NASA SPHEREx Space Observation & Time-Lapse Comparison</div>
-        </div>
-      </div>
 
-      <!-- Experience Mode Switcher (Simple Layman Guide vs Pro Astrophysics) -->
-      <div class="experience-mode-toggle">
-        <button class="exp-btn active" id="btn-mode-simple" onclick="setExperienceMode('simple')">
-          <span>🧒</span> Plain-English Guide (Simple)
-        </button>
-        <button class="exp-btn" id="btn-mode-pro" onclick="setExperienceMode('pro')">
-          <span>🔬</span> Astrophysics Pro
-        </button>
-      </div>
-
-      <div class="mission-telemetry-pills">
-        <a href="index.html" class="glossary-pill-btn" style="text-decoration:none; color:rgba(255,255,255,0.85);" title="Return to Landing Page">
-          <span>🚀</span> Mission Control
+        <a href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
+          <span>🔬</span> Use Scientist Mode
         </a>
-        <button class="glossary-pill-btn" onclick="openGlossaryModal()">
-          <span>📖</span> Space Words Explained
-        </button>
-        <div class="pill-item">
-          <div class="status-dot"></div>
-          <span>HEAT CAMERA ACTIVE</span>
-        </div>
-      </div>
-    </header>
+      </header>
 
-    <!-- How to Explore Banner (3 Simple Steps for Anyone) -->
-    <div class="how-to-guide-bar" id="how-to-guide">
-      <div class="guide-step">
-        <div class="step-num">1</div>
-        <div><strong>Pick a celestial object below:</strong> Choose a speeding star, a baby star wrapped in ice, or a beating giant.</div>
-      </div>
-      <div class="guide-step">
-        <div class="step-num">2</div>
-        <div><strong>Choose two dates:</strong> Compare how it looked 6 months apart (April 2025 vs October 2025).</div>
-      </div>
-      <div class="guide-step">
-        <div class="step-num">3</div>
-        <div><strong>Spot what changed:</strong> Drag the slider or click <strong>Blink</strong> to watch stars move or change brightness!</div>
-      </div>
-    </div>
+      <div class="picker-hero">
+        <h1>Which Star or Space Object Do You Want to Explore?</h1>
+        <p>
+          First, tap any cosmic target below (for example <strong>Star A — Barnard's Star</strong>).
+          You will open its side-by-side NASA SPHEREx time-lapse screen where anyone can compare two dates,
+          drag curtains, blink frames, read plain-English definitions, and ask our Science Q&amp;A Agent what changed!
+        </p>
 
-    <!-- Friendly Human Story Hero Card (Dynamic Plain-English Story) -->
-    <section class="layman-story-card" id="layman-story-section">
-      <div class="layman-story-header">
-        <div class="layman-badge-tag" id="story-badge">
-          <span>✨</span> <span id="story-badge-text">Baby Star & Frozen Water</span>
+        <div class="picker-search-row">
+          <div class="picker-search-box">
+            <span>🔭</span>
+            <input type="text" id="picker-search-input" placeholder="Search any target (e.g. Barnard, Betelgeuse, L1527, TRAPPIST-1, Planet X, Sirius)...">
+            <button class="picker-search-btn" onclick="handleCustomTargetSearch()">Inspect Star →</button>
+          </div>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-cyan);" id="story-date-diff">
-          Comparing April 2025 with October 2025 (6 Months Later)
+
+        <div class="category-filter-row" id="category-filter-row">
+          <button class="cat-filter-btn active" data-cat="all" onclick="filterTargetGallery('all')">✨ All Targets</button>
+          <button class="cat-filter-btn" data-cat="moving" onclick="filterTargetGallery('moving')">🏃 Moving Stars</button>
+          <button class="cat-filter-btn" data-cat="brightness" onclick="filterTargetGallery('brightness')">💓 Changing Brightness</button>
+          <button class="cat-filter-btn" data-cat="ice" onclick="filterTargetGallery('ice')">🧊 Frozen Space Ice</button>
+          <button class="cat-filter-btn" data-cat="galaxy" onclick="filterTargetGallery('galaxy')">🌀 Galaxies</button>
         </div>
       </div>
 
-      <h2 class="layman-story-title" id="story-title">
-        The Baby Star in an Ice Blanket (L1527)
-      </h2>
-
-      <p class="layman-story-body" id="story-body">
-        Imagine a baby star that is only 100,000 years old (our Sun is 4.6 billion years old!). It is still wrapped inside a freezing cosmic blanket made of real water ice crystals, carbon dioxide, and dry ice. As the baby star gulps down matter from its cloud, it occasionally heats up and flickers—causing some of the surrounding space frost to melt or freeze back again. NASA observes this to understand where planet-forming water comes from!
-      </p>
-
-      <!-- 3 Instant Answers in Plain English -->
-      <div class="layman-answers-grid">
-        <div class="answer-card">
-          <div class="answer-q">
-            <span>🏃‍♂️</span> Did it move across the sky?
-          </div>
-          <div class="answer-badge" id="story-motion-badge" style="color: var(--accent-emerald);">
-            Stationary Position
-          </div>
-          <div class="answer-desc" id="story-motion-desc">
-            Anchor steady: It did not budge in position relative to distant background stars.
-          </div>
-        </div>
-
-        <div class="answer-card">
-          <div class="answer-q">
-            <span>💡</span> Did its brightness change?
-          </div>
-          <div class="answer-badge" id="story-bright-badge" style="color: var(--accent-amber);">
-            +8.0% Brighter
-          </div>
-          <div class="answer-desc" id="story-bright-desc">
-            Energy surge: The star got noticeably brighter between dates, like turning up a lamp dimmer switch.
-          </div>
-        </div>
-
-        <div class="answer-card">
-          <div class="answer-q">
-            <span>🧊</span> Is there water or ice in space?
-          </div>
-          <div class="answer-badge" id="story-chem-badge" style="color: var(--accent-cyan);">
-            Real Frozen Water Ice Detected
-          </div>
-          <div class="answer-desc" id="story-chem-desc">
-            Just like ice cubes in your freezer, billions of frozen water crystals are floating in cold clouds around this star!
-          </div>
-        </div>
+      <div class="target-cards-grid" id="target-cards-grid">
+        <!-- Populated dynamically from CitizenEngine -->
       </div>
     </section>
 
-    <!-- Sky Explorer & Target Selection Bar -->
-    <section class="target-explorer-bar" id="explorer-section">
-      <div class="explorer-top-row">
-        <div class="search-input-wrap">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" id="target-search-input" class="search-input" placeholder="Search any star name (e.g. Barnard, Betelgeuse, L1527) or coordinates..." value="L1527">
-          <button class="search-btn" id="search-btn" onclick="executeSearch()">Explore</button>
-        </div>
+    <!-- ======================================================================
+         STEP 2 VIEW: WIREFRAME COMPARISON STUDIO
+         ====================================================================== -->
+    <section id="compare-studio-view" class="hidden-view">
 
-        <div class="benchmark-chips">
-          <span class="chips-label">Quick Targets:</span>
-          <button class="target-chip active" data-target="l1527" onclick="selectBenchmarkTarget('l1527')">
-            <span>🧊 L1527</span>
-            <span class="chip-badge">Baby Sun in Ice</span>
+      <!-- Top Wireframe Header: [Back to Home + Change Star] ... [Use Scientist Mode] -->
+      <header class="top-nav-bar">
+        <div class="nav-left-group">
+          <a href="index.html" class="nav-btn" title="Back to Home / Landing Page">
+            <span>←</span> Back to Home
+          </a>
+          <button type="button" class="nav-btn nav-btn-change" onclick="backToTargetPicker()" title="Choose a different star or galaxy">
+            <span>🔭</span> Change Star
           </button>
-          <button class="target-chip" data-target="barnard" onclick="selectBenchmarkTarget('barnard')">
-            <span>🏃‍♂️ Barnard's Star</span>
-            <span class="chip-badge">Watch It Jump!</span>
-          </button>
-          <button class="target-chip" data-target="betelgeuse" onclick="selectBenchmarkTarget('betelgeuse')">
-            <span>💓 Betelgeuse</span>
-            <span class="chip-badge">Beating Heart</span>
-          </button>
-          <button class="target-chip" data-target="trappist1" onclick="selectBenchmarkTarget('trappist1')">
-            <span>🪐 TRAPPIST-1</span>
-            <span class="chip-badge">7-Planet Sun</span>
-          </button>
-          <button class="target-chip" data-target="iras08572" onclick="selectBenchmarkTarget('iras08572')">
-            <span>🌀 IRAS 08572</span>
-            <span class="chip-badge">Smashing Galaxies</span>
-          </button>
-          <button class="target-chip" data-target="orion_kl" onclick="selectBenchmarkTarget('orion_kl')">
-            <span>✨ Orion Nursery</span>
-            <span class="chip-badge">Star Factory</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Active Target Hero Banner -->
-      <div class="active-target-banner" id="active-target-banner">
-        <div class="target-main-info">
-          <div class="target-category-tag" id="target-category-tag">Interstellar Ices & Protoplanetary Disks</div>
-          <div class="target-title-area">
-            <h3 id="target-name">L1527 IRS (Taurus Molecular Core)</h3>
-            <div class="target-designation" id="target-designation">IRAS 04368+2557 • Newborn Protostar</div>
+          <div class="active-target-pill">
+            <span class="active-target-code" id="header-target-code">Star A</span>
+            <span id="header-target-name">Barnard's Star (GJ 699)</span>
           </div>
         </div>
 
-        <div class="target-coord-chips">
-          <div class="coord-chip">Sky Position (RA): <span id="target-ra-str">04h 39m 53.9s</span></div>
-          <div class="coord-chip">Sky Position (Dec): <span id="target-dec-str">+26° 03' 09.8"</span></div>
-          <div class="coord-chip">Speed in Space: <span id="target-pm-str">~19 km/s</span></div>
-          <div class="coord-chip">Distance from Earth: <span id="target-dist-str">140 pc (~450 light-years)</span></div>
-        </div>
-      </div>
-    </section>
+        <a id="scientist-mode-link" href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
+          <span>🔬</span> Use Scientist Mode
+        </a>
+      </header>
 
-    <!-- Comparison Controls & Mode Switcher -->
-    <section class="comparison-controls-card" id="compare-section">
-      <div class="epoch-pair-selector">
-        <div class="selector-unit">
-          <label id="lbl-epoch-a">Snapshot 1 (Earlier Date)</label>
-          <select id="epoch-a-select" class="epoch-dropdown" onchange="onEpochChange()">
-            <option value="epoch_1" selected>Epoch 1 (April 15, 2025)</option>
-            <option value="epoch_2">Epoch 2 (October 15, 2025)</option>
-            <option value="epoch_3">Epoch 3 (April 15, 2026)</option>
-            <option value="epoch_4">Epoch 4 (October 15, 2026)</option>
-          </select>
-        </div>
+      <!-- 3-Column Wireframe Workspace:
+           Left = Define Scientific Terms Used
+           Center = Date Choosing + Image 1 | Image 2 + Details About Img 1 & Img 2
+           Right = Different Basic Comparison Modes -->
+      <div class="wireframe-workspace-grid">
 
-        <div class="vs-badge">VS</div>
+        <!-- LEFT SIDEBAR: Scientific Terms Used -->
+        <aside class="side-panel" id="terms-sidebar">
+          <div class="side-panel-header">
+            <div class="side-panel-title">📖 Scientific Terms Used</div>
+            <div class="side-panel-sub">Simple plain-English definitions for words shown here</div>
+          </div>
 
-        <div class="selector-unit">
-          <label id="lbl-epoch-b">Snapshot 2 (Later Date)</label>
-          <select id="epoch-b-select" class="epoch-dropdown" onchange="onEpochChange()">
-            <option value="epoch_1">Epoch 1 (April 15, 2025)</option>
-            <option value="epoch_2" selected>Epoch 2 (October 15, 2025)</option>
-            <option value="epoch_3">Epoch 3 (April 15, 2026)</option>
-            <option value="epoch_4">Epoch 4 (October 15, 2026)</option>
-          </select>
-        </div>
-      </div>
+          <div class="terms-filter-tabs">
+            <button type="button" class="term-tab-btn active" id="tab-terms-star" onclick="setTermsScope('star')">For This Star</button>
+            <button type="button" class="term-tab-btn" id="tab-terms-all" onclick="setTermsScope('all')">All Terms</button>
+          </div>
 
-      <div class="mode-switches">
-        <button class="mode-btn active" id="btn-mode-side" onclick="setComparisonMode('side')" title="Look at both photos side by side">
-          <span>🪟</span> Side-by-Side
-        </button>
-        <button class="mode-btn" id="btn-mode-curtain" onclick="setComparisonMode('curtain')" title="Drag a split curtain divider horizontally">
-          <span>↔️</span> Split Curtain Slider
-        </button>
-        <button class="mode-btn" id="btn-mode-blink" onclick="setComparisonMode('blink')" title="Flashes back and forth so your eye spots movement instantly">
-          <span>⚡</span> Blink Comparator
-        </button>
-        <button class="mode-btn" id="btn-mode-diff" onclick="setComparisonMode('diff')" title="Subtracts old photo from new photo to highlight only what changed">
-          <span>🔴</span> Difference Map
-        </button>
-      </div>
+          <div class="terms-list-scroll" id="terms-list-container">
+            <!-- Populated dynamically -->
+          </div>
+        </aside>
 
-      <div class="quick-actions">
-        <button class="action-btn" onclick="exportDataCSV()">
-          <span>📥</span> Download Data Table
-        </button>
-        <button class="action-btn" onclick="copyAstropySnippet()">
-          <span>🐍</span> Astropy Code
-        </button>
-      </div>
-    </section>
+        <!-- CENTER STAGE: Date Choosing + Dual Rounded Images + Details Cards -->
+        <main class="center-compare-stage" id="center-compare-stage">
 
-    <!-- Blink Toolbar (shown only in blink mode) -->
-    <div class="blink-toolbar" id="blink-toolbar">
-      <button class="action-btn" id="blink-toggle-btn" onclick="toggleBlinkPlay()">
-        <span id="blink-icon">⏸️</span> <span id="blink-label">Pause Blink</span>
-      </button>
-      <div class="blink-status-chip" id="blink-active-epoch-tag" style="background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan);">
-        SHOWING: PHOTO 1 (APRIL 2025)
-      </div>
-      <div class="blink-slider-group">
-        <label>Blink Speed:</label>
-        <input type="range" id="blink-speed-range" min="0.5" max="5.0" step="0.5" value="2.0" oninput="updateBlinkSpeed(this.value)">
-        <span id="blink-speed-val">2.0 times per sec</span>
-      </div>
-    </div>
+          <!-- DATE CHOOSING ROW (Directly above Image 1 and Image 2) -->
+          <div class="date-chooser-bar">
+            <div class="date-picker-unit epoch-a">
+              <span class="date-unit-label">📅 Date <strong>Image 1</strong></span>
+              <select id="epoch-a-select" class="date-select" onchange="onDatesChanged()"></select>
+            </div>
 
-    <!-- Split Curtain Container (shown in Curtain mode) -->
-    <div class="split-curtain-container" id="split-curtain-container">
-      <div class="curtain-layer curtain-layer-bottom">
-        <img id="curtain-img-b" src="" alt="Epoch B Observation">
-      </div>
-      <div class="curtain-layer curtain-layer-top" id="curtain-top-layer">
-        <img id="curtain-img-a" src="" alt="Epoch A Observation">
-      </div>
-      <div class="curtain-handle" id="curtain-handle">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-      </div>
-      <div class="curtain-label-a" id="curtain-lbl-a">PHOTO 1 (APRIL 2025)</div>
-      <div class="curtain-label-b" id="curtain-lbl-b">PHOTO 2 (OCTOBER 2025)</div>
-    </div>
+            <div class="date-middle-controls">
+              <button type="button" class="swap-dates-btn" onclick="swapDates()" title="Swap Image 1 and Image 2 dates">⇄ Swap</button>
+              <span class="delta-days-pill" id="dates-gap-pill">+183 Days Apart</span>
+            </div>
 
-    <!-- Side-by-Side Dual Telescope Stage -->
-    <section class="comparison-stage-grid" id="side-by-side-stage">
-      <!-- Telescope Viewport A -->
-      <div class="stage-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <div class="epoch-indicator-dot dot-epoch-a"></div>
-            <div>
-              <div class="panel-title" id="stage-a-title">Snapshot 1 (Earlier Observation)</div>
-              <div class="panel-date" id="stage-a-date">April 15, 2025</div>
+            <div class="date-picker-unit epoch-b">
+              <span class="date-unit-label">📅 Date <strong>Image 2</strong></span>
+              <select id="epoch-b-select" class="date-select" onchange="onDatesChanged()"></select>
             </div>
           </div>
-          <div class="panel-mjd-badge">REFERENCE PHOTO</div>
-        </div>
 
-        <div class="telescope-viewport" id="viewport-a">
-          <img class="telescope-img" id="img-epoch-a" src="" alt="SPHEREx Epoch A Render">
-          <div class="viewport-hud-overlay">
-            <div>NASA SPHEREx Infrared Heat Camera</div>
-            <div id="hud-a-coords">Position: RA 04h39m Dec +26°03'</div>
-          </div>
-          <div class="viewport-scale-bar">
-            <span>Size on sky: 10 arcsec</span>
-            <div class="scale-line"></div>
-          </div>
-        </div>
+          <!-- IMAGE COMPARISON STAGE -->
+          <div class="visual-stage-frame">
 
-        <div class="panel-telemetry-row">
-          <div class="tele-box">
-            <div class="tele-lbl" id="tele-lbl-a-flux">Infrared Heat / Brightness</div>
-            <div class="tele-val" id="tele-a-flux">850.0 mJy</div>
-          </div>
-          <div class="tele-box">
-            <div class="tele-lbl">Ecliptic Solar Coordinates</div>
-            <div class="tele-val" id="tele-a-ecliptic">71.4°, +4.8°</div>
-          </div>
-          <div class="tele-box">
-            <div class="tele-lbl">Milky Way Coordinates</div>
-            <div class="tele-val" id="tele-a-galactic">175.2°, -16.8°</div>
-          </div>
-        </div>
-      </div>
+            <!-- Mode 1: SIDE BY SIDE (Default matching wireframe with bold divider bar) -->
+            <div class="side-by-side-wrap" id="stage-side-by-side">
+              <div class="image-pane">
+                <div class="rounded-sky-box">
+                  <canvas id="canvas-img-a" width="420" height="420"></canvas>
+                  <div class="sky-tag-top-left" id="badge-img-a">IMAGE 1 · Apr 15, 2025</div>
+                  <div class="sky-tag-bottom-right" id="flux-tag-a">1450 mJy</div>
+                </div>
+              </div>
 
-      <!-- Telescope Viewport B -->
-      <div class="stage-panel">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <div class="epoch-indicator-dot dot-epoch-b"></div>
-            <div>
-              <div class="panel-title" id="stage-b-title">Snapshot 2 (Later Observation)</div>
-              <div class="panel-date" id="stage-b-date">October 15, 2025</div>
+              <div class="center-divider-bar" title="Before / After Divider"></div>
+
+              <div class="image-pane">
+                <div class="rounded-sky-box">
+                  <canvas id="canvas-img-b" width="420" height="420"></canvas>
+                  <div class="sky-tag-top-left epoch-b" id="badge-img-b">IMAGE 2 · Oct 15, 2025</div>
+                  <div class="sky-tag-bottom-right" id="delta-tag-b">+5.18" Moved</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode 2: CURTAIN MODE (Interactive split drag slider) -->
+            <div class="interactive-single-stage hidden-view" id="stage-curtain">
+              <div class="single-stage-banner">
+                <span>◀ Drag the curtain handle left or right to compare <strong>Image 1</strong> vs <strong>Image 2</strong></span>
+                <span id="curtain-pct-label" style="font-family:var(--font-mono);color:var(--accent-cyan);">Split: 50%</span>
+              </div>
+              <div class="curtain-box" id="curtain-box">
+                <canvas id="curtain-canvas-b" class="curtain-canvas-bottom" width="420" height="420"></canvas>
+                <div class="curtain-top-clip" id="curtain-top-clip">
+                  <canvas id="curtain-canvas-a" width="420" height="420"></canvas>
+                </div>
+                <div class="curtain-knob" id="curtain-knob">⇄</div>
+                <div class="sky-tag-top-left" id="curtain-lbl-a">Apr 15, 2025</div>
+                <div class="sky-tag-top-left epoch-b" style="left:auto;right:10px;" id="curtain-lbl-b">Oct 15, 2025</div>
+              </div>
+            </div>
+
+            <!-- Mode 3..6: SINGLE INTERACTIVE CANVAS (Blink / Diff Glow / Ghost Overlay / Time-Lapse Morph) -->
+            <div class="interactive-single-stage hidden-view" id="stage-single-canvas">
+              <div class="single-stage-banner">
+                <span id="single-mode-banner-text">⚡ Blinking between Image 1 and Image 2</span>
+                <span id="single-mode-live-tag" style="font-family:var(--font-mono);color:var(--accent-amber);font-weight:700;">SHOWING: IMAGE 1</span>
+              </div>
+              <canvas id="canvas-single-interactive" class="single-rounded-canvas" width="420" height="420"></canvas>
+            </div>
+
+          </div>
+
+          <!-- DETAILS / DIFFERENCE CARDS DIRECTLY BELOW IMAGE 1 & IMAGE 2 -->
+          <div class="details-dual-grid">
+            <!-- Details About Image 1 -->
+            <div class="image-detail-box img-1">
+              <div class="detail-box-title">
+                <span>🔍 Details About Image 1</span>
+                <span id="detail1-date-pill" style="font-family:var(--font-mono);font-size:0.74rem;">Apr 15, 2025</span>
+              </div>
+
+              <div class="detail-stat-grid">
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Heat Brightness</div>
+                  <div class="mini-stat-val" id="d1-flux">1450 mJy</div>
+                </div>
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Temperature</div>
+                  <div class="mini-stat-val" id="d1-temp">3130 K</div>
+                </div>
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Brightness Level</div>
+                  <div class="mini-stat-val" id="d1-level">Strong Glow</div>
+                </div>
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Sky Position</div>
+                  <div class="mini-stat-val" id="d1-coords">17h 57m</div>
+                </div>
+              </div>
+
+              <div class="detail-plain-summary" id="d1-summary">
+                Loading observation details for Image 1...
+              </div>
+            </div>
+
+            <!-- Difference & Details About Image 2 -->
+            <div class="image-detail-box img-2">
+              <div class="detail-box-title">
+                <span>✨ Difference &amp; Details About Image 2</span>
+                <span id="detail2-date-pill" style="font-family:var(--font-mono);font-size:0.74rem;">Oct 15, 2025</span>
+              </div>
+
+              <div class="delta-chip-row" id="d2-delta-pills">
+                <!-- Populated dynamically -->
+              </div>
+
+              <div class="detail-stat-grid">
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Heat Brightness</div>
+                  <div class="mini-stat-val" id="d2-flux">1464 mJy</div>
+                </div>
+                <div class="detail-mini-stat">
+                  <div class="mini-stat-lbl">Position Shift</div>
+                  <div class="mini-stat-val" id="d2-shift">5.18" North</div>
+                </div>
+              </div>
+
+              <div class="detail-plain-summary" id="d2-summary">
+                Loading differences and observation details for Image 2...
+              </div>
             </div>
           </div>
-          <div class="panel-mjd-badge" id="stage-b-delta-badge">+183 Days Later (6 Months)</div>
-        </div>
 
-        <div class="telescope-viewport" id="viewport-b">
-          <img class="telescope-img" id="img-epoch-b" src="" alt="SPHEREx Epoch B Render">
-          <div class="viewport-hud-overlay">
-            <div>NASA SPHEREx Infrared Heat Camera</div>
-            <div id="hud-b-coords">Position: RA 04h39m Dec +26°03'</div>
-          </div>
-          <div class="viewport-scale-bar">
-            <span>Size on sky: 10 arcsec</span>
-            <div class="scale-line"></div>
-          </div>
-        </div>
+        </main>
 
-        <div class="panel-telemetry-row">
-          <div class="tele-box">
-            <div class="tele-lbl" id="tele-lbl-b-flux">Infrared Heat / Brightness</div>
-            <div class="tele-val" id="tele-b-flux">918.0 mJy</div>
+        <!-- RIGHT SIDEBAR: Basic Comparison Modes (Side-by-Side, Curtain, Blink, Diff, Overlay, Morph) -->
+        <aside class="side-panel" id="modes-sidebar">
+          <div class="side-panel-header">
+            <div class="side-panel-title">🎛️ Comparison Modes</div>
+            <div class="side-panel-sub">Choose a simple way to compare both dates</div>
           </div>
-          <div class="tele-box">
-            <div class="tele-lbl">Ecliptic Solar Coordinates</div>
-            <div class="tele-val" id="tele-b-ecliptic">71.4°, +4.8°</div>
+
+          <div class="mode-cards-list">
+            <button type="button" class="mode-choice-btn active" data-mode="side" onclick="setCompareMode('side')">
+              <div class="mode-choice-top"><span>🪟 Side by Side</span><span>1</span></div>
+              <div class="mode-choice-desc">Look at Image 1 and Image 2 calmly next to each other.</div>
+            </button>
+
+            <button type="button" class="mode-choice-btn" data-mode="curtain" onclick="setCompareMode('curtain')">
+              <div class="mode-choice-top"><span>↔️ Curtain Mode</span><span>2</span></div>
+              <div class="mode-choice-desc">Drag a sliding split bar across one photo to spot subtle changes.</div>
+            </button>
+
+            <button type="button" class="mode-choice-btn" data-mode="blink" onclick="setCompareMode('blink')">
+              <div class="mode-choice-top"><span>⚡ Blink Mode</span><span>3</span></div>
+              <div class="mode-choice-desc">Flashes old vs new quickly so moving or pulsing stars pop right out!</div>
+            </button>
+
+            <button type="button" class="mode-choice-btn" data-mode="diff" onclick="setCompareMode('diff')">
+              <div class="mode-choice-top"><span>🟢 Difference Glow</span><span>4</span></div>
+              <div class="mode-choice-desc">Hides unchanged background stars and lights up ONLY what changed.</div>
+            </button>
+
+            <button type="button" class="mode-choice-btn" data-mode="ghost" onclick="setCompareMode('ghost')">
+              <div class="mode-choice-top"><span>👻 Ghost Overlay</span><span>5</span></div>
+              <div class="mode-choice-desc">Stacks Date 1 (blue) + Date 2 (gold) together with a trail arrow.</div>
+            </button>
+
+            <button type="button" class="mode-choice-btn" data-mode="morph" onclick="setCompareMode('morph')">
+              <div class="mode-choice-top"><span>🎬 Time-Lapse Fade</span><span>6</span></div>
+              <div class="mode-choice-desc">Smoothly plays or scrubs how the star changed from Date 1 to Date 2.</div>
+            </button>
           </div>
-          <div class="tele-box">
-            <div class="tele-lbl">Milky Way Coordinates</div>
-            <div class="tele-val" id="tele-b-galactic">175.2°, -16.8°</div>
+
+          <!-- Context Controls for the Active Mode -->
+          <div class="mode-controls-box" id="active-mode-controls">
+            <!-- Dynamically updated -->
           </div>
-        </div>
+
+          <!-- Visual Helper Toggles -->
+          <div class="mode-controls-box">
+            <label class="helper-toggle-row">
+              <input type="checkbox" id="chk-show-overlays" checked onchange="renderStudio()">
+              <span>Show target circle &amp; motion arrow</span>
+            </label>
+            <label class="helper-toggle-row">
+              <input type="checkbox" id="chk-show-grid" checked onchange="renderStudio()">
+              <span>Show sky coordinate grid lines</span>
+            </label>
+          </div>
+
+          <div class="mode-tip-card" id="mode-tip-card">
+            💡 <strong>Tip:</strong> Compare April 2025 vs October 2026 in <strong>Blink Mode</strong> to spot multi-year changes immediately!
+          </div>
+        </aside>
+
       </div>
+
+      <!-- ======================================================================
+           BOTTOM WIDE PANEL: SEPARATE SCIENCE INTERPRETER Q&A AGENT
+           ====================================================================== -->
+      <section class="agent-qa-section" id="science-qa-agent-panel">
+        <div class="agent-header-row">
+          <div class="agent-title-group">
+            <div class="agent-badge">🤖 PROMETHEUS DEDICATED SCIENCE Q&amp;A AGENT (citizen_agent.js)</div>
+            <h2>What Changed in Detail &amp; How This Helps Scientists (All Possible Q&amp;A)</h2>
+            <p id="agent-subtitle">Independent interpreter analyzing changes between Epoch 1 and Epoch 2 in clear Question &amp; Answer format.</p>
+          </div>
+
+          <div class="agent-level-pills">
+            <button type="button" class="level-pill-btn active" data-lvl="simple" onclick="setAgentLevel('simple')">🧒 Everyday Plain English</button>
+            <button type="button" class="level-pill-btn" data-lvl="kid" onclick="setAgentLevel('kid')">🎒 Super Simple (Age 10)</button>
+            <button type="button" class="level-pill-btn" data-lvl="science" onclick="setAgentLevel('science')">🔬 Science Student</button>
+          </div>
+        </div>
+
+        <!-- Ask Any Custom Question Input -->
+        <div class="agent-ask-bar">
+          <input type="text" id="agent-question-input" placeholder="Ask the Science Agent anything about this star (e.g. 'Why did it move?', 'How does this help find Planet X?', 'Is there water?')...">
+          <button type="button" class="agent-ask-btn" onclick="askAgentFromInput()">Ask Agent →</button>
+        </div>
+
+        <div class="agent-quick-chips">
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('Explain this like I am 10 years old')">🧒 Explain in 10 seconds</button>
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('Why did it move across the sky?')">🏃 Why did it move?</button>
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('Why did its brightness change?')">💡 Why did brightness change?</button>
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('How does this help NASA scientists?')">🔬 How does this help NASA?</button>
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('How does this help find Planet X?')">🪐 How does this find Planet X?</button>
+          <button type="button" class="quick-q-chip" onclick="askQuickQuestion('Is there water or ice here?')">🧊 Any water or ice?</button>
+        </div>
+
+        <div class="agent-live-answer hidden-view" id="agent-live-answer"></div>
+
+        <!-- Auto-Generated Full Q&A Breakdown -->
+        <div class="qa-cards-grid" id="qa-cards-grid">
+          <!-- Populated dynamically by CitizenScienceAgent -->
+        </div>
+      </section>
+
     </section>
-
-    <!-- 4 Measurable Metrics Cards (Plain-English & Analogies) -->
-    <section class="metrics-dashboard-grid">
-      <!-- Metric 1: Did It Move? -->
-      <div class="metric-card highlight">
-        <div class="metric-header">
-          <span class="metric-label" id="metric-lbl-motion">Did It Move in Space?</span>
-          <div class="metric-icon-badge">📐</div>
-        </div>
-        <div class="metric-value-huge" id="metric-separation">0.009"</div>
-        <div class="metric-sub" id="metric-sub-motion">
-          <span>Shift on sky: <strong id="metric-delta-ra">+0.003"</strong></span>
-          <span>Direction: <strong id="metric-pa">162.5° (South-East)</strong></span>
-        </div>
-        <div class="metric-analogy-box" id="analogy-motion">
-          <strong>Everyday Analogy:</strong> Like watching a distant ship on the horizon. If this number is big (e.g. over 1"), the star is speeding through space like a runner!
-        </div>
-      </div>
-
-      <!-- Metric 2: Did It Get Brighter or Dimmer? -->
-      <div class="metric-card highlight">
-        <div class="metric-header">
-          <span class="metric-label" id="metric-lbl-flux">Did It Get Brighter or Dimmer?</span>
-          <div class="metric-icon-badge">✨</div>
-        </div>
-        <div class="metric-value-huge delta-positive" id="metric-flux-delta">+68.0 mJy</div>
-        <div class="metric-sub" id="metric-sub-flux">
-          <span>Relative Change: <strong id="metric-pct-change">+8.00%</strong></span>
-          <span>Variability: <strong id="metric-var-index">0.0769</strong></span>
-        </div>
-        <div class="metric-analogy-box" id="analogy-flux">
-          <strong>Everyday Analogy:</strong> Like turning a lamp's dimmer switch slightly up (+%) or down (-%). Stars like Betelgeuse pulse like beating hearts!
-        </div>
-      </div>
-
-      <!-- Metric 3: Is It Behaving Normally? -->
-      <div class="metric-card">
-        <div class="metric-header">
-          <span class="metric-label" id="metric-lbl-stability">Is It Behaving Normally?</span>
-          <div class="metric-icon-badge">📊</div>
-        </div>
-        <div class="metric-value-huge" id="metric-chi-sq">1.14</div>
-        <div class="metric-sub" id="metric-sub-stability">
-          <span>Status: <strong id="metric-chi-status" style="color: var(--accent-emerald);">Normal & Steady</strong></span>
-        </div>
-        <div class="metric-analogy-box" id="analogy-stability">
-          <strong>Everyday Analogy:</strong> A doctor checking an ECG heart monitor. Low numbers around 1.0 mean normal steady behavior; big numbers mean an explosion or flare!
-        </div>
-      </div>
-
-      <!-- Metric 4: Is There Space Frost & Water? -->
-      <div class="metric-card">
-        <div class="metric-header">
-          <span class="metric-label" id="metric-lbl-ice">Is There Space Frost & Water?</span>
-          <div class="metric-icon-badge">🧊</div>
-        </div>
-        <div class="metric-value-huge delta-negative" id="metric-ice-delta">-0.029</div>
-        <div class="metric-sub" id="metric-sub-ice">
-          <span>Water Ice (3.05µm): <strong id="metric-h2o-depth">Strong Ice Signal</strong></span>
-          <span>CO₂ Dry Ice (4.27µm): <strong id="metric-co2-depth">Frost Detected</strong></span>
-        </div>
-        <div class="metric-analogy-box" id="analogy-ice">
-          <strong>Everyday Analogy:</strong> Just like frost coating your car windshield on a freezing morning, cold space dust is coated in real water ice crystals!
-        </div>
-      </div>
-    </section>
-
-    <!-- Spectroscopy Lab: 102-Band Chart & Chemical Fingerprints -->
-    <section class="spectroscopy-section" id="spectra-section">
-      <div class="spectroscopy-header">
-        <div class="spec-title-group">
-          <h3>
-            <span>📈</span> Chemical Fingerprint: What Is This Star Made Of?
-          </h3>
-          <p id="spec-section-subtitle">
-            NASA splits invisible heat light into 102 shades of infrared. When light passes through cold water ice or gas in space, the chemicals "eat" specific colors, creating a dip in the line!
-          </p>
-        </div>
-
-        <div class="chart-legend-pills">
-          <div class="legend-pill">
-            <div class="legend-swatch swatch-epoch-a"></div>
-            <span id="legend-label-a">Photo 1 (Earlier)</span>
-          </div>
-          <div class="legend-pill">
-            <div class="legend-swatch swatch-epoch-b"></div>
-            <span id="legend-label-b">Photo 2 (Later)</span>
-          </div>
-          <div class="legend-pill">
-            <div class="legend-swatch swatch-ice"></div>
-            <span>Frozen Space Frost Signatures</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="spectral-chart-canvas-wrap">
-        <canvas id="spectral-canvas"></canvas>
-        <div id="chart-tooltip" class="tooltip-custom"></div>
-      </div>
-
-      <!-- Rainbow Heat Spectrum Guide -->
-      <div class="heat-spectrum-guide">
-        <div class="heat-guide-title">
-          <span>🌈 The 102 Invisible Colors of Heat Measured by NASA SPHEREx:</span>
-          <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-amber);">0.75 µm (Warm Red) &rarr; 5.0 µm (Deep Thermal Heat)</span>
-        </div>
-        <div class="rainbow-heat-bar"></div>
-        <div class="heat-labels-row">
-          <span>Near-Infrared (Starlight Warmth)</span>
-          <span>💧 Water Ice Band (3.05µm)</span>
-          <span>🧊 CO₂ Dry Ice (4.27µm)</span>
-          <span>Deep Thermal Space Heat</span>
-        </div>
-      </div>
-
-      <div class="ice-features-tags-row" style="margin-top: 1rem;">
-        <span class="ice-tag-title">Click to Inspect Chemical Fingerprints:</span>
-        <button class="ice-pill" onclick="explainChemicalFeature('h2o')">
-          💧 Where is the Frozen Water Ice? (3.05 &mu;m)
-        </button>
-        <button class="ice-pill" onclick="explainChemicalFeature('co2')">
-          🧊 Where is the Carbon Dioxide Dry Ice? (4.27 &mu;m)
-        </button>
-        <button class="ice-pill" onclick="explainChemicalFeature('co')">
-          ❄️ Where is the Carbon Monoxide Ice? (4.67 &mu;m)
-        </button>
-        <button class="ice-pill" onclick="explainChemicalFeature('ch3oh')">
-          🌿 Where is the Space Alcohol / Methanol? (3.53 &mu;m)
-        </button>
-      </div>
-    </section>
-
-    <!-- Multi-Epoch Timeline & Difference Preview -->
-    <section class="timeline-section" id="timeline-section">
-      <!-- Multi-Epoch Light Curve -->
-      <div class="timeline-card">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <span style="font-size: 1.1rem;">⏱️</span>
-            <div>
-              <div class="panel-title">Brightness Over Time (Time-Lapse Light Curve)</div>
-              <div class="panel-date">Tracks how the object's brightness fluctuated across all 4 survey visits</div>
-            </div>
-          </div>
-          <div class="panel-mjd-badge">4 SURVEY VISITS</div>
-        </div>
-
-        <div class="lightcurve-chart-wrap">
-          <canvas id="lightcurve-canvas"></canvas>
-        </div>
-      </div>
-
-      <!-- Difference Image Card -->
-      <div class="difference-preview-card">
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <span style="font-size: 1.1rem;">🔴</span>
-            <div>
-              <div class="panel-title">Difference Map (What Changed?)</div>
-              <div class="panel-date">Subtracts Photo 1 from Photo 2 to highlight changes</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="diff-preview-box">
-          <div class="diff-img-wrap">
-            <img id="img-diff-map" src="" alt="Difference Map">
-          </div>
-          <div class="diff-legend-scale">
-            <span>Got Dimmer (Cyan)</span>
-            <div class="diff-bar"></div>
-            <span>Got Brighter (Red)</span>
-          </div>
-          <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; max-width: 220px; margin-top: 4px;">
-            Still stars disappear into black. Any dot that jumped or changed brightness glows brightly!
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Plain-English Space Glossary Modal -->
-    <div id="glossary-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(4,7,18,0.85); backdrop-filter:blur(8px); z-index:999; align-items:center; justify-content:center; padding:1.5rem;">
-      <div style="background:var(--bg-surface-elevated); border:1px solid var(--border-glow); border-radius:var(--radius-lg); max-width:640px; width:100%; max-height:85vh; overflow-y:auto; padding:1.75rem; box-shadow:var(--shadow-glow); position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-          <h3 style="font-size:1.2rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-            <span>📖</span> Space Words Explained (Plain English)
-          </h3>
-          <button onclick="closeGlossaryModal()" style="background:transparent; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer;">&times;</button>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:1rem; font-size:0.85rem; line-height:1.55; color:#cbd5e1;">
-          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-cyan);">
-            <strong style="color:var(--accent-cyan); font-size:0.95rem;">What is Infrared Light?</strong>
-            <p>Our human eyes only see visible rainbow light. Infrared light is invisible heat radiation. Just like night-vision goggles let you see people in pitch darkness from their body heat, NASA's SPHEREx telescope uses infrared vision to peer through thick space dust clouds!</p>
-          </div>
-
-          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-amber);">
-            <strong style="color:var(--accent-amber); font-size:0.95rem;">Why do we care about Frozen Water Ice in Space?</strong>
-            <p>Where did Earth's oceans come from? Scientists believe billions of years ago, comets and space rocks coated in frozen water ice bombarded early Earth, filling our oceans! By mapping space frost around newborn baby stars, NASA learns how water gets delivered to new alien planets.</p>
-          </div>
-
-          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-rose);">
-            <strong style="color:var(--accent-rose); font-size:0.95rem;">Why do stars move in the sky?</strong>
-            <p>Everything in the Milky Way galaxy is in motion, orbiting the central supermassive black hole at hundreds of kilometers per second. While distant stars are too far away for us to notice, close stars (like Barnard's Star) visibly speed across the sky over just months!</p>
-          </div>
-
-          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-purple);">
-            <strong style="color:var(--accent-purple); font-size:0.95rem;">What is an Arcsecond (")?</strong>
-            <p>An arcsecond is a tiny unit used by astronomers to measure angles in the sky (1/3600th of a single degree). Seeing 1 arcsecond is like being able to spot a small coin from 4 kilometers away!</p>
-          </div>
-
-          <div style="background:rgba(8,14,28,0.6); padding:0.85rem; border-radius:var(--radius-md); border-left:3px solid var(--accent-emerald);">
-            <strong style="color:var(--accent-emerald); font-size:0.95rem;">What is SPHEREx?</strong>
-            <p>A NASA space telescope orbiting Earth that takes a fresh picture of the entire universe every 6 months in 102 distinct infrared colors to study cosmic inflation, water ices, and the birth of galaxies.</p>
-          </div>
-        </div>
-
-        <div style="margin-top:1.5rem; text-align:right;">
-          <button onclick="closeGlossaryModal()" class="action-btn" style="display:inline-flex;">Close Glossary</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer-bar">
-      <div>
-        <strong>PROMETHEUS</strong> &bull; SPHEREx Astronomical Data Comparison Engine &bull; JPL / Caltech / NASA
-      </div>
-      <div class="footer-credits">
-        Integrated with <a href="https://www.astropy.org" target="_blank" rel="noopener">Astropy</a> &bull; IRSA Science Archive &bull; Layman-Friendly Mode Active
-      </div>
-    </footer>
 
   </div>
 
-  <!-- Inline Core Script -->
-  <script>
-    /* ==========================================================================
-       PROMETHEUS Astronomical Client Engine
-       Synchronizes UI with Flask Backend & Astropy Engine with Offline Fallbacks
-       ========================================================================== */
+  <!-- Separate Engine & Dedicated Q&A Agent Modules -->
+  <script src="citizen_engine.js"></script>
+  <script src="citizen_agent.js"></script>
 
-    let activeTargetId = "l1527";
+  <script>
+    /* ========================================================================
+       PROMETHEUS CITIZEN EXPLORER CONTROLLER
+       ======================================================================== */
+    let activeTargetId = "barnard";
     let activeEpochA = "epoch_1";
     let activeEpochB = "epoch_2";
-    let activeComparisonData = null;
-    let comparisonMode = "side"; // "side", "curtain", "blink", "diff"
-    let experienceMode = "simple"; // "simple" (layman) vs "pro" (astrophysics)
-    
-    let isBlinking = false;
-    let blinkInterval = null;
-    let blinkCurrentEpoch = "A";
+    let activeMode = "side";
+    let termsScope = "star";
+    let agentLevel = "simple";
+    let activeCategoryFilter = "all";
+
+    let blinkTimer = null;
+    let blinkShowingA = true;
+    let blinkPlaying = true;
     let blinkHz = 2.0;
 
-    // --- Starfield Canvas Animation ---
+    let morphTimer = null;
+    let morphPlaying = true;
+    let morphProgress = 0.0; // 0 -> 1
+
+    let latestComparison = null;
+
+    // --- Background Starfield ---
     (function initStarfield() {
       const canvas = document.getElementById("starfield-canvas");
       const ctx = canvas.getContext("2d");
       let stars = [];
-      const numStars = 180;
-
       function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
       }
       window.addEventListener("resize", resize);
       resize();
-
-      for (let i = 0; i < numStars; i++) {
+      for (let i = 0; i < 140; i++) {
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 0.3,
-          alpha: Math.random() * 0.8 + 0.2,
-          speed: Math.random() * 0.02 + 0.005,
-          phase: Math.random() * Math.PI * 2
+          r: Math.random() * 1.4 + 0.3,
+          a: Math.random() * 0.65 + 0.2,
+          s: Math.random() * 0.002 + 0.0005,
+          p: Math.random() * Math.PI * 2
         });
       }
-
-      function render(time) {
+      function frame(t) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let s of stars) {
-          const currentAlpha = s.alpha + Math.sin(time * s.speed + s.phase) * 0.3;
-          ctx.fillStyle = `rgba(200, 225, 255, ${Math.max(0.1, Math.min(1.0, currentAlpha))})`;
+        for (const s of stars) {
+          const alpha = s.a + Math.sin(t * s.s + s.p) * 0.22;
+          ctx.fillStyle = `rgba(203, 213, 225, ${Math.max(0.08, Math.min(0.9, alpha))})`;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
           ctx.fill();
         }
-        requestAnimationFrame(render);
+        requestAnimationFrame(frame);
       }
-      requestAnimationFrame(render);
+      requestAnimationFrame(frame);
     })();
 
-    // --- Experience Mode Toggle (Simple Layman vs Pro) ---
-    function setExperienceMode(mode) {
-      experienceMode = mode;
-      const btnSimple = document.getElementById("btn-mode-simple");
-      const btnPro = document.getElementById("btn-mode-pro");
-      const storySection = document.getElementById("layman-story-section");
-      const howToGuide = document.getElementById("how-to-guide");
-      const analogyBoxes = document.querySelectorAll(".metric-analogy-box");
-
-      if (mode === "simple") {
-        btnSimple.className = "exp-btn active";
-        btnPro.className = "exp-btn";
-        storySection.style.display = "block";
-        howToGuide.style.display = "flex";
-        analogyBoxes.forEach(b => b.style.display = "block");
-
-        // Simple Titles
-        document.getElementById("metric-lbl-motion").textContent = "Did It Move in Space?";
-        document.getElementById("metric-lbl-flux").textContent = "Did It Get Brighter or Dimmer?";
-        document.getElementById("metric-lbl-stability").textContent = "Is It Behaving Normally?";
-        document.getElementById("metric-lbl-ice").textContent = "Is There Space Frost & Water?";
-        document.getElementById("lbl-epoch-a").textContent = "Snapshot 1 (Earlier Date)";
-        document.getElementById("lbl-epoch-b").textContent = "Snapshot 2 (Later Date)";
-      } else {
-        btnSimple.className = "exp-btn";
-        btnPro.className = "exp-btn pro-active";
-        storySection.style.display = "block"; // Keep summary accessible
-        howToGuide.style.display = "none";
-        analogyBoxes.forEach(b => b.style.display = "none");
-
-        // Technical Astrophysics Titles
-        document.getElementById("metric-lbl-motion").textContent = "Astrometric Offset (ρ)";
-        document.getElementById("metric-lbl-flux").textContent = "Photometric Delta (ΔF)";
-        document.getElementById("metric-lbl-stability").textContent = "Reduced χ² Spectral Fit";
-        document.getElementById("metric-lbl-ice").textContent = "Ice Column Depth (Δτ)";
-        document.getElementById("lbl-epoch-a").textContent = "Reference Epoch (A)";
-        document.getElementById("lbl-epoch-b").textContent = "Comparison Epoch (B)";
-      }
+    // --- Escape HTML cleanly ---
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
 
-    // --- Glossary Modal ---
-    function openGlossaryModal() {
-      document.getElementById("glossary-modal").style.display = "flex";
-    }
-    function closeGlossaryModal() {
-      document.getElementById("glossary-modal").style.display = "none";
-    }
+    // --- Step 1: Render Target Picker Cards ---
+    function renderTargetGallery() {
+      const grid = document.getElementById("target-cards-grid");
+      const allTargets = CitizenEngine.getAllTargetsList();
+      const filtered = activeCategoryFilter === "all"
+        ? allTargets
+        : allTargets.filter(t => t.categoryTag === activeCategoryFilter);
 
-    // --- Benchmark Target Selection ---
-    function selectBenchmarkTarget(targetId) {
-      activeTargetId = targetId;
-      document.querySelectorAll(".target-chip").forEach(chip => {
-        chip.classList.toggle("active", chip.getAttribute("data-target") === targetId);
-      });
-      loadTargetAndCompare();
-    }
+      grid.innerHTML = "";
+      filtered.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "target-select-card";
+        card.onclick = () => selectTargetAndOpenStudio(t.id);
 
-    // --- Search Execution ---
-    function executeSearch() {
-      const query = document.getElementById("target-search-input").value.trim();
-      if (!query) return;
+        const e1 = CitizenEngine.computeEpochMetrics(t, "epoch_1");
+        const e2 = CitizenEngine.computeEpochMetrics(t, "epoch_2");
+        const cmp = CitizenEngine.compareTargetEpochs(t.id, "epoch_1", "epoch_2");
+        const quickSignal = cmp.delta.movedSignificantly
+          ? `Jumps ${cmp.delta.separationArcsec.toFixed(1)}" / 6 mo`
+          : `${cmp.delta.fluxDeltaPct >= 0 ? "+" : ""}${cmp.delta.fluxDeltaPct.toFixed(0)}% Glow Shift`;
 
-      fetch(`/api/search?q=${encodeURIComponent(query)}`)
-        .then(r => r.json())
-        .then(res => {
-          if (res.status === "success") {
-            activeTargetId = res.target.id;
-            updateTargetBanner(res.target);
-            loadTargetAndCompare();
-          } else {
-            alert(res.message || "Celestial object not found.");
-          }
-        })
-        .catch(err => {
-          console.warn("API search offline, using local target match:", err);
-          selectBenchmarkTarget(query.toLowerCase());
+        card.innerHTML = `
+          <div class="card-preview-top">
+            <canvas width="320" height="220"></canvas>
+            <span class="card-code-badge">${esc(t.code)}</span>
+            <span class="card-cat-badge">${esc(t.categoryLabel)}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-nickname">${esc(t.nickname)}</div>
+            <div class="card-title">${esc(t.name)}</div>
+            <div class="card-hook">${esc(t.cardHook)}</div>
+            <div class="card-footer-meta">
+              <span class="card-dist-pill">⚡ ${esc(quickSignal)}</span>
+              <span class="card-tap-cta">Tap to Compare →</span>
+            </div>
+          </div>
+        `;
+
+        // Draw live sky preview thumbnail onto card canvas
+        const thumbCanvas = card.querySelector("canvas");
+        CitizenEngine.renderEpochCanvas(t, e2, {
+          canvas: thumbCanvas,
+          size: 300,
+          showOverlays: false,
+          showGrid: true
         });
+        // Add subtle movement hint dot for moving stars
+        if (cmp.delta.movedSignificantly) {
+          const ctx = thumbCanvas.getContext("2d");
+          const scale = 300 / 420;
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.arc(e1.pixelCenter.x * scale, e1.pixelCenter.y * scale, 12, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        grid.appendChild(card);
+      });
     }
 
-    document.getElementById("target-search-input").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") executeSearch();
+    function filterTargetGallery(cat) {
+      activeCategoryFilter = cat;
+      document.querySelectorAll(".cat-filter-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-cat") === cat);
+      });
+      renderTargetGallery();
+    }
+
+    function handleCustomTargetSearch() {
+      const val = document.getElementById("picker-search-input").value.trim();
+      if (!val) return;
+      selectTargetAndOpenStudio(val);
+    }
+
+    document.getElementById("picker-search-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") handleCustomTargetSearch();
     });
 
-    // --- Epoch Dropdowns Changed ---
-    function onEpochChange() {
+    // --- Navigation Between Step 1 (Target Picker) and Step 2 (Comparison Studio) ---
+    function selectTargetAndOpenStudio(targetId) {
+      const target = CitizenEngine.getTarget(targetId);
+      activeTargetId = target.id;
+      activeEpochA = "epoch_1";
+      activeEpochB = target.id === "betelgeuse" ? "epoch_3" : "epoch_2"; // Show Betelgeuse's dramatic contrast by default!
+
+      document.getElementById("epoch-a-select").value = activeEpochA;
+      document.getElementById("epoch-b-select").value = activeEpochB;
+
+      document.getElementById("target-picker-view").classList.add("hidden-view");
+      document.getElementById("compare-studio-view").classList.remove("hidden-view");
+      document.getElementById("agent-live-answer").classList.add("hidden-view");
+
+      // Sync URL param safely
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set("target", targetId);
+        history.replaceState({}, "", u.toString());
+      } catch (_) {}
+
+      renderStudio();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function backToTargetPicker() {
+      stopAllAnimations();
+      document.getElementById("compare-studio-view").classList.add("hidden-view");
+      document.getElementById("target-picker-view").classList.remove("hidden-view");
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("target");
+        history.replaceState({}, "", u.toString());
+      } catch (_) {}
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // --- Populate Date Choosing Selectors ---
+    function initDateSelectors() {
+      const selA = document.getElementById("epoch-a-select");
+      const selB = document.getElementById("epoch-b-select");
+      selA.innerHTML = "";
+      selB.innerHTML = "";
+      CitizenEngine.EPOCHS.forEach(ep => {
+        selA.add(new Option(ep.name, ep.id));
+        selB.add(new Option(ep.name, ep.id));
+      });
+      selA.value = activeEpochA;
+      selB.value = activeEpochB;
+    }
+
+    function onDatesChanged() {
       activeEpochA = document.getElementById("epoch-a-select").value;
       activeEpochB = document.getElementById("epoch-b-select").value;
-      loadTargetAndCompare();
+      renderStudio();
     }
 
-    // --- Fetch Target & Perform Epoch Comparison ---
-    function loadTargetAndCompare() {
-      const payload = {
-        target_id: activeTargetId,
-        epoch_a: activeEpochA,
-        epoch_b: activeEpochB
-      };
+    function swapDates() {
+      const temp = activeEpochA;
+      activeEpochA = activeEpochB;
+      activeEpochB = temp;
+      document.getElementById("epoch-a-select").value = activeEpochA;
+      document.getElementById("epoch-b-select").value = activeEpochB;
+      renderStudio();
+    }
 
-      fetch("/api/compare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === "success") {
-          activeComparisonData = data.comparison;
-          renderComparison(activeComparisonData);
-        }
-      })
-      .catch(err => {
-        console.warn("Backend API request failed; invoking client-side fallback engine:", err);
-        generateClientSideComparison();
+    // --- Left Sidebar: Define Scientific Terms Used ---
+    function setTermsScope(scope) {
+      termsScope = scope;
+      document.getElementById("tab-terms-star").classList.toggle("active", scope === "star");
+      document.getElementById("tab-terms-all").classList.toggle("active", scope === "all");
+      renderTermsSidebar();
+    }
+
+    function renderTermsSidebar() {
+      const container = document.getElementById("terms-list-container");
+      const target = latestComparison ? latestComparison.target : CitizenEngine.getTarget(activeTargetId);
+      const list = termsScope === "star" ? CitizenEngine.getTermsForTarget(target) : CitizenEngine.getAllTerms();
+      container.innerHTML = list.map(item => `
+        <div class="term-card">
+          <div class="term-name">${esc(item.term)}</div>
+          <div class="term-nickname">“${esc(item.nickname)}”</div>
+          <div class="term-simple">${esc(item.simple)}</div>
+          <div class="term-analogy"><strong>Like:</strong> ${esc(item.analogy)}</div>
+        </div>
+      `).join("");
+    }
+
+    // --- Render Full Studio State ---
+    function renderStudio() {
+      const comp = CitizenEngine.compareTargetEpochs(activeTargetId, activeEpochA, activeEpochB);
+      latestComparison = comp;
+
+      const { target, epochA, epochB, delta } = comp;
+      const showOverlays = document.getElementById("chk-show-overlays").checked;
+      const showGrid = document.getElementById("chk-show-grid").checked;
+
+      // Header Pills
+      document.getElementById("header-target-code").textContent = target.code;
+      document.getElementById("header-target-name").textContent = target.name;
+      document.getElementById("scientist-mode-link").href = `scientist.html?target=${encodeURIComponent(target.id)}`;
+
+      // Date gap pill
+      const gapDays = delta.daysApart;
+      document.getElementById("dates-gap-pill").textContent =
+        gapDays === 0 ? "Same Date!" : `${gapDays > 0 ? "+" : ""}${gapDays} Days Apart`;
+
+      // Left Sidebar Glossary
+      renderTermsSidebar();
+
+      // Side-by-side Canvases (Image 1 & Image 2)
+      CitizenEngine.renderEpochCanvas(target, epochA, {
+        canvas: document.getElementById("canvas-img-a"),
+        size: 420,
+        showOverlays,
+        showGrid
+      });
+      CitizenEngine.renderEpochCanvas(target, epochB, {
+        canvas: document.getElementById("canvas-img-b"),
+        size: 420,
+        showOverlays,
+        showGrid
       });
 
-      // Also fetch target metadata to update hero banner & lightcurve
-      fetch(`/api/target/${activeTargetId}`)
-        .then(r => r.json())
-        .then(res => {
-          if (res.status === "success") {
-            updateTargetBanner(res.target);
-            renderLightCurve(res.epochs);
-          }
-        })
-        .catch(() => {});
-    }
+      document.getElementById("badge-img-a").textContent = `IMAGE 1 · ${epochA.epoch.shortDate}`;
+      document.getElementById("flux-tag-a").textContent = `${epochA.fluxMjy.toFixed(0)} mJy`;
+      document.getElementById("badge-img-b").textContent = `IMAGE 2 · ${epochB.epoch.shortDate}`;
 
-    function updateTargetBanner(meta) {
-      document.getElementById("target-category-tag").textContent = meta.category || "Astronomical Object";
-      document.getElementById("target-name").textContent = meta.name;
-      document.getElementById("target-designation").textContent = `${meta.designation} • ${meta.variability_type || ''}`;
-      document.getElementById("target-ra-str").textContent = `${meta.ra_deg.toFixed(4)}°`;
-      document.getElementById("target-dec-str").textContent = `${meta.dec_deg.toFixed(4)}°`;
-      if (meta.proper_motion) {
-        document.getElementById("target-pm-str").textContent = 
-          `μα ${meta.proper_motion.pm_ra_mas} mas/yr, μδ ${meta.proper_motion.pm_dec_mas} mas/yr`;
-      }
-      if (meta.distance_pc) {
-        document.getElementById("target-dist-str").textContent = `${meta.distance_pc} pc (~${Math.round(meta.distance_pc * 3.26)} light-years)`;
-      }
-    }
+      const badgeDeltaText = delta.movedSignificantly
+        ? `Moved ${delta.separationArcsec.toFixed(2)}" ${delta.compassDir}`
+        : `${delta.fluxDeltaPct >= 0 ? "+" : ""}${delta.fluxDeltaPct.toFixed(1)}% Brightness`;
+      document.getElementById("delta-tag-b").textContent = badgeDeltaText;
 
-    // --- Render Comparison Results in UI ---
-    function renderComparison(comp) {
-      const epA = comp.epoch_a;
-      const epB = comp.epoch_b;
-      const ast = comp.astrometry;
-      const phot = comp.photometry;
-      const spec = comp.spectroscopy;
-      const lay = comp.layman_narrative || {};
-
-      // Update Plain-English Story Card
-      if (lay.story) {
-        document.getElementById("story-title").textContent = comp.target.layman_title || comp.target.name;
-        document.getElementById("story-badge-text").textContent = comp.target.layman_badge || "Celestial Target";
-        document.getElementById("story-body").textContent = lay.story;
-        document.getElementById("story-date-diff").textContent = lay.date_comparison || `Comparing ${epA.date} with ${epB.date}`;
-        
-        document.getElementById("story-motion-badge").textContent = lay.motion_badge || "Stationary";
-        document.getElementById("story-motion-desc").textContent = lay.motion_story || "";
-        
-        document.getElementById("story-bright-badge").textContent = lay.bright_badge || "Steady";
-        document.getElementById("story-bright-desc").textContent = lay.bright_story || "";
-        
-        document.getElementById("story-chem-badge").textContent = lay.chem_badge || "Gas Detected";
-        document.getElementById("story-chem-desc").textContent = lay.chem_story || "";
-      }
-
-      // Telescope A Viewport
-      document.getElementById("stage-a-title").textContent = epA.name;
-      document.getElementById("stage-a-date").textContent = `${epA.date}`;
-      document.getElementById("img-epoch-a").src = epA.render;
-      document.getElementById("hud-a-coords").textContent = `RA ${epA.coordinates.ra_hms} Dec ${epA.coordinates.dec_dms}`;
-      document.getElementById("tele-a-flux").textContent = `${epA.total_flux_mjy.toFixed(1)} mJy`;
-      document.getElementById("tele-a-ecliptic").textContent = `${epA.coordinates.ecliptic_lon_deg}°, ${epA.coordinates.ecliptic_lat_deg}°`;
-      document.getElementById("tele-a-galactic").textContent = `${epA.coordinates.galactic_l_deg}°, ${epA.coordinates.galactic_b_deg}°`;
-
-      // Telescope B Viewport
-      document.getElementById("stage-b-title").textContent = epB.name;
-      document.getElementById("stage-b-date").textContent = `${epB.date}`;
-      document.getElementById("stage-b-delta-badge").textContent = `+${Math.round(ast.delta_time_days)} Days Later`;
-      document.getElementById("img-epoch-b").src = epB.render;
-      document.getElementById("hud-b-coords").textContent = `RA ${epB.coordinates.ra_hms} Dec ${epB.coordinates.dec_dms}`;
-      document.getElementById("tele-b-flux").textContent = `${epB.total_flux_mjy.toFixed(1)} mJy`;
-      document.getElementById("tele-b-ecliptic").textContent = `${epB.coordinates.ecliptic_lon_deg}°, ${epB.coordinates.ecliptic_lat_deg}°`;
-      document.getElementById("tele-b-galactic").textContent = `${epB.coordinates.galactic_l_deg}°, ${epB.coordinates.galactic_b_deg}°`;
-
-      // Split Curtain Images & Labels
-      document.getElementById("curtain-img-a").src = epA.render;
-      document.getElementById("curtain-img-b").src = epB.render;
-      document.getElementById("curtain-lbl-a").textContent = epA.name;
-      document.getElementById("curtain-lbl-b").textContent = epB.name;
-
-      // Difference Map
-      document.getElementById("img-diff-map").src = comp.difference_image;
-
-      // Measurable Metrics Cards
-      document.getElementById("metric-separation").textContent = `${ast.separation_arcsec.toFixed(3)}"`;
-      document.getElementById("metric-delta-ra").textContent = `${ast.delta_ra_arcsec >= 0 ? '+' : ''}${ast.delta_ra_arcsec.toFixed(3)}"`;
-      document.getElementById("metric-pa").textContent = `${ast.position_angle_deg.toFixed(1)}° (${ast.position_angle_deg < 90 ? 'NE' : ast.position_angle_deg < 180 ? 'SE' : ast.position_angle_deg < 270 ? 'SW' : 'NW'})`;
-
-      // Photometric Metrics
-      const fluxDeltaEl = document.getElementById("metric-flux-delta");
-      fluxDeltaEl.textContent = `${phot.flux_delta_mjy >= 0 ? '+' : ''}${phot.flux_delta_mjy.toFixed(1)} mJy`;
-      fluxDeltaEl.className = `metric-value-huge ${phot.flux_delta_mjy >= 0 ? 'delta-positive' : 'delta-negative'}`;
-
-      document.getElementById("metric-pct-change").textContent = `${phot.flux_pct_change >= 0 ? '+' : ''}${phot.flux_pct_change.toFixed(2)}%`;
-      document.getElementById("metric-var-index").textContent = phot.variability_index.toFixed(4);
-
-      // Spectroscopy Metrics
-      document.getElementById("metric-chi-sq").textContent = spec.reduced_chi_square.toFixed(2);
-      const chiStatusEl = document.getElementById("metric-chi-status");
-      if (spec.reduced_chi_square < 1.5) {
-        chiStatusEl.textContent = "Normal & Steady";
-        chiStatusEl.style.color = "var(--accent-emerald)";
-      } else if (spec.reduced_chi_square < 5.0) {
-        chiStatusEl.textContent = "Noticeable Fluctuation";
-        chiStatusEl.style.color = "var(--accent-amber)";
-      } else {
-        chiStatusEl.textContent = "Extreme Burst / Change";
-        chiStatusEl.style.color = "var(--accent-rose)";
-      }
-
-      // Render 102-band Spectral Curves
-      renderSpectralChart(spec.spectral_diff, epA.name, epB.name);
-    }
-
-    // --- Mode Switching (Side-by-Side, Curtain, Blink, Difference) ---
-    function setComparisonMode(mode) {
-      comparisonMode = mode;
-      document.querySelectorAll(".mode-btn").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(`btn-mode-${mode}`).classList.add("active");
-
-      const sideStage = document.getElementById("side-by-side-stage");
-      const curtainStage = document.getElementById("split-curtain-container");
-      const blinkToolbar = document.getElementById("blink-toolbar");
-
-      if (mode !== "blink" && isBlinking) {
-        stopBlink();
-      }
-
-      if (mode === "side") {
-        sideStage.style.display = "grid";
-        curtainStage.style.display = "none";
-        blinkToolbar.style.display = "none";
-        document.getElementById("viewport-a").style.display = "flex";
-        document.getElementById("viewport-b").style.display = "flex";
-      } else if (mode === "curtain") {
-        sideStage.style.display = "none";
-        curtainStage.style.display = "block";
-        blinkToolbar.style.display = "none";
-      } else if (mode === "blink") {
-        sideStage.style.display = "grid";
-        curtainStage.style.display = "none";
-        blinkToolbar.style.display = "flex";
-        startBlink();
-      } else if (mode === "diff") {
-        sideStage.style.display = "grid";
-        curtainStage.style.display = "none";
-        blinkToolbar.style.display = "none";
-        document.getElementById("timeline-section").scrollIntoView({ behavior: "smooth" });
-      }
-    }
-
-    // --- Interactive Split-Curtain Dragging Logic ---
-    (function initCurtainSlider() {
-      const container = document.getElementById("split-curtain-container");
-      const topLayer = document.getElementById("curtain-top-layer");
-      const handle = document.getElementById("curtain-handle");
-      let isDragging = false;
-
-      function updateSlider(clientX) {
-        const rect = container.getBoundingClientRect();
-        let posX = clientX - rect.left;
-        posX = Math.max(0, Math.min(rect.width, posX));
-        const pct = (posX / rect.width) * 100;
-        topLayer.style.width = `${pct}%`;
-        handle.style.left = `${pct}%`;
-      }
-
-      handle.addEventListener("mousedown", () => { isDragging = true; });
-      window.addEventListener("mouseup", () => { isDragging = false; });
-      window.addEventListener("mousemove", (e) => {
-        if (isDragging) updateSlider(e.clientX);
+      // Curtain Canvases
+      CitizenEngine.renderEpochCanvas(target, epochA, {
+        canvas: document.getElementById("curtain-canvas-a"),
+        size: 420,
+        showOverlays,
+        showGrid
       });
-
-      handle.addEventListener("touchstart", () => { isDragging = true; });
-      window.addEventListener("touchend", () => { isDragging = false; });
-      window.addEventListener("touchmove", (e) => {
-        if (isDragging && e.touches.length > 0) {
-          updateSlider(e.touches[0].clientX);
-        }
+      CitizenEngine.renderEpochCanvas(target, epochB, {
+        canvas: document.getElementById("curtain-canvas-b"),
+        size: 420,
+        showOverlays,
+        showGrid
       });
+      document.getElementById("curtain-lbl-a").textContent = `IMAGE 1 · ${epochA.epoch.shortDate}`;
+      document.getElementById("curtain-lbl-b").textContent = `IMAGE 2 · ${epochB.epoch.shortDate}`;
+
+      // Details About Image 1 Card
+      document.getElementById("detail1-date-pill").textContent = epochA.epoch.shortDate;
+      document.getElementById("d1-flux").textContent = `${epochA.fluxMjy.toFixed(1)} mJy`;
+      document.getElementById("d1-temp").textContent = `${epochA.tempK} K`;
+      document.getElementById("d1-level").textContent = epochA.brightnessWord;
+      document.getElementById("d1-coords").textContent = target.raHms;
+      document.getElementById("d1-summary").textContent =
+        `${epochA.visualNote} Located ${target.distanceLabel}. Used as the "Before" reference photo.`;
+
+      // Details & Differences About Image 2 Card
+      document.getElementById("detail2-date-pill").textContent = epochB.epoch.shortDate;
+      document.getElementById("d2-flux").textContent = `${epochB.fluxMjy.toFixed(1)} mJy`;
+      document.getElementById("d2-shift").textContent = delta.movedSignificantly
+        ? `${delta.separationArcsec.toFixed(2)}" ${delta.compassDir}`
+        : `${delta.separationArcsec.toFixed(3)}" (Steady)`;
+
+      const fluxClass = Math.abs(delta.fluxDeltaPct) < 2 ? "" : (delta.fluxDeltaPct > 0 ? "warn" : "neg");
+      const shiftClass = delta.movedSignificantly ? "" : "warn";
+      document.getElementById("d2-delta-pills").innerHTML = `
+        <span class="delta-pill ${shiftClass}">Position: ${delta.movedSignificantly ? `Moved ${delta.separationArcsec.toFixed(2)}"` : "Stationary"}</span>
+        <span class="delta-pill ${fluxClass}">Glow: ${delta.fluxDeltaPct >= 0 ? "+" : ""}${delta.fluxDeltaPct.toFixed(1)}%</span>
+        <span class="delta-pill">Temp: ${delta.tempDeltaK >= 0 ? "+" : ""}${delta.tempDeltaK.toFixed(1)} K</span>
+      `;
+      document.getElementById("d2-summary").textContent =
+        `${epochB.visualNote} Over ${Math.abs(delta.daysApart)} days vs Image 1: ${
+          delta.movedSignificantly
+            ? `noticeably jumped ${delta.separationArcsec.toFixed(2)} arcseconds toward ${delta.compassDir}. `
+            : `stayed anchored on background stars. `
+        }${
+          Math.abs(delta.fluxDeltaPct) >= 3
+            ? `Brightness shifted by ${delta.fluxDeltaPct >= 0 ? "+" : ""}${delta.fluxDeltaPct.toFixed(1)}% (${delta.fluxDeltaMjy >= 0 ? "brighter" : "dimmer"}).`
+            : `Brightness remained nearly steady.`
+        }`;
+
+      // Right Panel Tips + Active Visual Mode Render
+      renderActiveModeStage();
+
+      // Bottom Panel: Dedicated Science Q&A Agent
+      renderAgentQABottomPanel(comp);
+    }
+
+    // --- Comparison Mode Switcher & Renderers ---
+    function stopAllAnimations() {
+      if (blinkTimer) { clearInterval(blinkTimer); blinkTimer = null; }
+      if (morphTimer) { clearInterval(morphTimer); morphTimer = null; }
+    }
+
+    function setCompareMode(mode) {
+      activeMode = mode;
+      document.querySelectorAll(".mode-choice-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+      });
+      renderActiveModeStage();
+    }
+
+    function renderActiveModeStage() {
+      stopAllAnimations();
+      if (!latestComparison) return;
+
+      const { target, epochA, epochB, delta } = latestComparison;
+      const showOverlays = document.getElementById("chk-show-overlays").checked;
+      const showGrid = document.getElementById("chk-show-grid").checked;
+
+      const elSide = document.getElementById("stage-side-by-side");
+      const elCurtain = document.getElementById("stage-curtain");
+      const elSingle = document.getElementById("stage-single-canvas");
+      const ctrlBox = document.getElementById("active-mode-controls");
+      const tipBox = document.getElementById("mode-tip-card");
+
+      elSide.classList.add("hidden-view");
+      elCurtain.classList.add("hidden-view");
+      elSingle.classList.add("hidden-view");
+
+      if (activeMode === "side") {
+        elSide.classList.remove("hidden-view");
+        ctrlBox.innerHTML = `<div style="font-size:0.8rem;color:var(--text-muted);">Viewing both rounded telescope photos side by side with the central divider bar.</div>`;
+        tipBox.innerHTML = delta.movedSignificantly
+          ? `💡 <strong>What to look for:</strong> Notice how background stars stay in the exact same corners, while <strong>${esc(target.shortName)}</strong> shifted ${delta.separationArcsec.toFixed(2)}"!`
+          : `💡 <strong>What to look for:</strong> Compare the bright core size and halo glow between Image 1 and Image 2!`;
+      } else if (activeMode === "curtain") {
+        elCurtain.classList.remove("hidden-view");
+        syncCurtainSizing();
+        ctrlBox.innerHTML = `
+          <div style="font-size:0.78rem;font-weight:700;color:var(--accent-cyan);">Curtain Quick Jump</div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="term-tab-btn" onclick="setCurtainPct(20)">20%</button>
+            <button type="button" class="term-tab-btn" onclick="setCurtainPct(50)">50%</button>
+            <button type="button" class="term-tab-btn" onclick="setCurtainPct(80)">80%</button>
+          </div>
+        `;
+        tipBox.innerHTML = `💡 <strong>Tip:</strong> Drag the blue knob straight across the center of <strong>${esc(target.shortName)}</strong> to see position jumps or brightness swells cut cleanly in half!`;
+      } else if (activeMode === "blink") {
+        elSingle.classList.remove("hidden-view");
+        document.getElementById("single-mode-banner-text").textContent = "⚡ Blink Mode: Flashing rapidly between Image 1 & Image 2";
+        ctrlBox.innerHTML = `
+          <button type="button" class="term-tab-btn active" id="btn-blink-play" onclick="toggleBlinkPlayback()">
+            ${blinkPlaying ? "⏸️ Pause Blink" : "▶️ Play Blink"}
+          </button>
+          <label style="font-size:0.76rem;color:var(--text-muted);">Speed: <strong id="lbl-blink-hz">${blinkHz.toFixed(1)}×/sec</strong></label>
+          <input type="range" min="0.5" max="5" step="0.5" value="${blinkHz}" oninput="setBlinkHz(this.value)">
+        `;
+        tipBox.innerHTML = `💡 <strong>Discovery Secret:</strong> This is how Clyde Tombaugh discovered Pluto in 1930 — anything still is quiet while anything that moved or flared flashes violently!`;
+        startBlinkLoop(target, epochA, epochB, showOverlays, showGrid);
+      } else if (activeMode === "diff") {
+        elSingle.classList.remove("hidden-view");
+        document.getElementById("single-mode-banner-text").textContent = "🟢 Difference Glow: Real pixel-by-pixel math (Image 2 minus Image 1)";
+        const tag = document.getElementById("single-mode-live-tag");
+        tag.textContent = "GREEN = New/Brighter · RED = Old/Dimmer";
+        tag.style.color = "var(--accent-emerald)";
+        CitizenEngine.renderDifferenceCanvas(target, epochA, epochB, document.getElementById("canvas-single-interactive"), showOverlays);
+        ctrlBox.innerHTML = `
+          <div style="font-size:0.78rem;color:var(--text-soft);">
+            <div><strong style="color:#34d399;">● Green/Cyan:</strong> Appeared or got brighter in Image 2</div>
+            <div style="margin-top:4px;"><strong style="color:#fb7185;">● Red/Pink:</strong> Left this spot or got dimmer from Image 1</div>
+            <div style="margin-top:4px;color:var(--text-muted);">Black sky = Unchanged!</div>
+          </div>
+        `;
+        tipBox.innerHTML = `💡 <strong>Tip:</strong> All unchanged background stars automatically cancel out to black — only real cosmic changes glow!`;
+      } else if (activeMode === "ghost") {
+        elSingle.classList.remove("hidden-view");
+        document.getElementById("single-mode-banner-text").textContent = "👻 Ghost Overlay: Both dates stacked together with trail circles";
+        const tag = document.getElementById("single-mode-live-tag");
+        tag.textContent = `BLUE = ${epochA.epoch.shortDate} · GOLD = ${epochB.epoch.shortDate}`;
+        tag.style.color = "var(--accent-cyan)";
+        CitizenEngine.renderGhostOverlayCanvas(target, epochA, epochB, document.getElementById("canvas-single-interactive"), showOverlays);
+        ctrlBox.innerHTML = `<div style="font-size:0.78rem;color:var(--text-soft);">Blue dashed ring shows Image 1 location; Gold ring shows Image 2 location on the exact same sky map.</div>`;
+        tipBox.innerHTML = `💡 <strong>Tip:</strong> If Blue and Gold rings sit apart, the object physically traveled across space between dates!`;
+      } else if (activeMode === "morph") {
+        elSingle.classList.remove("hidden-view");
+        document.getElementById("single-mode-banner-text").textContent = "🎬 Time-Lapse Morph: Smoothly animating Date 1 → Date 2";
+        ctrlBox.innerHTML = `
+          <button type="button" class="term-tab-btn active" id="btn-morph-play" onclick="toggleMorphPlayback()">
+            ${morphPlaying ? "⏸️ Pause Movie" : "▶️ Play Movie"}
+          </button>
+          <label style="font-size:0.76rem;color:var(--text-muted);">Timeline: <strong id="lbl-morph-pct">0%</strong></label>
+          <input type="range" id="morph-scrub-slider" min="0" max="100" value="${Math.round(morphProgress * 100)}" oninput="scrubMorph(this.value)">
+        `;
+        tipBox.innerHTML = `💡 <strong>Tip:</strong> Drag the Timeline slider manually back and forth to scrub time like a YouTube video!`;
+        startMorphLoop(target, epochA, epochB, showOverlays, showGrid);
+      }
+    }
+
+    // --- Blink Mode Engine ---
+    function startBlinkLoop(target, epA, epB, showOverlays, showGrid) {
+      const canvas = document.getElementById("canvas-single-interactive");
+      const tag = document.getElementById("single-mode-live-tag");
+      function drawFrame() {
+        const current = blinkShowingA ? epA : epB;
+        CitizenEngine.renderEpochCanvas(target, current, { canvas, size: 420, showOverlays, showGrid });
+        tag.textContent = blinkShowingA
+          ? `SHOWING: IMAGE 1 (${epA.epoch.shortDate})`
+          : `SHOWING: IMAGE 2 (${epB.epoch.shortDate})`;
+        tag.style.color = blinkShowingA ? "var(--accent-cyan)" : "var(--accent-amber)";
+      }
+      drawFrame();
+      if (blinkPlaying) {
+        blinkTimer = setInterval(() => {
+          blinkShowingA = !blinkShowingA;
+          drawFrame();
+        }, 1000 / blinkHz);
+      }
+    }
+
+    function toggleBlinkPlayback() {
+      blinkPlaying = !blinkPlaying;
+      renderActiveModeStage();
+    }
+
+    function setBlinkHz(val) {
+      blinkHz = parseFloat(val) || 2.0;
+      const lbl = document.getElementById("lbl-blink-hz");
+      if (lbl) lbl.textContent = `${blinkHz.toFixed(1)}×/sec`;
+      if (activeMode === "blink") renderActiveModeStage();
+    }
+
+    // --- Curtain Slider Engine ---
+    function syncCurtainSizing() {
+      const box = document.getElementById("curtain-box");
+      const topCanvas = document.getElementById("curtain-canvas-a");
+      if (box && topCanvas) {
+        topCanvas.style.width = `${box.clientWidth || 460}px`;
+        topCanvas.style.height = `${box.clientHeight || 460}px`;
+      }
+    }
+
+    function setCurtainPct(pct) {
+      const clamped = Math.max(2, Math.min(98, pct));
+      document.getElementById("curtain-top-clip").style.width = `${clamped}%`;
+      document.getElementById("curtain-knob").style.left = `${clamped}%`;
+      document.getElementById("curtain-pct-label").textContent = `Split: ${Math.round(clamped)}%`;
+    }
+
+    (function initCurtainDrag() {
+      const box = document.getElementById("curtain-box");
+      let dragging = false;
+      function move(clientX) {
+        const rect = box.getBoundingClientRect();
+        if (!rect.width) return;
+        const pct = ((clientX - rect.left) / rect.width) * 100;
+        setCurtainPct(pct);
+      }
+      box.addEventListener("mousedown", e => { dragging = true; move(e.clientX); });
+      window.addEventListener("mouseup", () => { dragging = false; });
+      window.addEventListener("mousemove", e => { if (dragging) move(e.clientX); });
+      box.addEventListener("touchstart", e => { dragging = true; if (e.touches[0]) move(e.touches[0].clientX); });
+      window.addEventListener("touchend", () => { dragging = false; });
+      window.addEventListener("touchmove", e => { if (dragging && e.touches[0]) move(e.touches[0].clientX); });
+      window.addEventListener("resize", syncCurtainSizing);
     })();
 
-    // --- Blink Comparator Logic ---
-    function startBlink() {
-      isBlinking = true;
-      document.getElementById("blink-icon").textContent = "⏸️";
-      document.getElementById("blink-label").textContent = "Pause Blink";
-      clearInterval(blinkInterval);
-
-      const delayMs = (1.0 / blinkHz) * 1000;
-      blinkInterval = setInterval(() => {
-        const viewportA = document.getElementById("viewport-a");
-        const viewportB = document.getElementById("viewport-b");
-        const statusChip = document.getElementById("blink-active-epoch-tag");
-
-        if (blinkCurrentEpoch === "A") {
-          blinkCurrentEpoch = "B";
-          viewportA.style.opacity = "0.15";
-          viewportB.style.opacity = "1.0";
-          viewportB.style.transform = "scale(1.02)";
-          viewportA.style.transform = "scale(1.0)";
-          statusChip.textContent = `SHOWING: PHOTO 2 (OCTOBER 2025)`;
-          statusChip.style.color = "var(--accent-rose)";
-          statusChip.style.background = "rgba(244, 63, 94, 0.2)";
-        } else {
-          blinkCurrentEpoch = "A";
-          viewportA.style.opacity = "1.0";
-          viewportB.style.opacity = "0.15";
-          viewportA.style.transform = "scale(1.02)";
-          viewportB.style.transform = "scale(1.0)";
-          statusChip.textContent = `SHOWING: PHOTO 1 (APRIL 2025)`;
-          statusChip.style.color = "var(--accent-cyan)";
-          statusChip.style.background = "rgba(56, 189, 248, 0.2)";
-        }
-      }, delayMs);
-    }
-
-    function stopBlink() {
-      isBlinking = false;
-      clearInterval(blinkInterval);
-      document.getElementById("blink-icon").textContent = "▶️";
-      document.getElementById("blink-label").textContent = "Play Blink";
-      const viewportA = document.getElementById("viewport-a");
-      const viewportB = document.getElementById("viewport-b");
-      viewportA.style.opacity = "1.0";
-      viewportB.style.opacity = "1.0";
-      viewportA.style.transform = "scale(1.0)";
-      viewportB.style.transform = "scale(1.0)";
-    }
-
-    function toggleBlinkPlay() {
-      if (isBlinking) stopBlink();
-      else startBlink();
-    }
-
-    function updateBlinkSpeed(val) {
-      blinkHz = parseFloat(val);
-      document.getElementById("blink-speed-val").textContent = `${blinkHz.toFixed(1)} times per sec`;
-      if (isBlinking) startBlink();
-    }
-
-    // --- Interactive 102-Band Spectrophotometry Canvas Chart ---
-    function renderSpectralChart(spectralData, labelA, labelB) {
-      const canvas = document.getElementById("spectral-canvas");
-      const ctx = canvas.getContext("2d");
-      const dpr = window.devicePixelRatio || 1;
-
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const width = rect.width;
-      const height = rect.height;
-
-      const padLeft = 65;
-      const padRight = 30;
-      const padTop = 30;
-      const padBottom = 45;
-
-      const plotW = width - padLeft - padRight;
-      const plotH = height - padTop - padBottom;
-
-      const minWave = 0.75;
-      const maxWave = 5.00;
-
-      let maxFlux = 0.001;
-      let minFlux = 0.0;
-      spectralData.forEach(d => {
-        if (d.flux_epoch_a_mjy > maxFlux) maxFlux = d.flux_epoch_a_mjy;
-        if (d.flux_epoch_b_mjy > maxFlux) maxFlux = d.flux_epoch_b_mjy;
-      });
-      maxFlux *= 1.15;
-
-      function waveToX(w) {
-        return padLeft + ((w - minWave) / (maxWave - minWave)) * plotW;
-      }
-      function fluxToY(f) {
-        return padTop + plotH - ((f - minFlux) / (maxFlux - minFlux)) * plotH;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-
-      // Grid lines
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
-      ctx.lineWidth = 1;
-      ctx.font = "10px 'JetBrains Mono', monospace";
-      ctx.fillStyle = "#64748b";
-
-      for (let w = 1.0; w <= 5.0; w += 0.5) {
-        const x = waveToX(w);
-        ctx.beginPath();
-        ctx.moveTo(x, padTop);
-        ctx.lineTo(x, padTop + plotH);
-        ctx.stroke();
-        ctx.fillText(`${w.toFixed(1)} \u03BCm`, x - 14, padTop + plotH + 18);
-      }
-
-      for (let i = 0; i <= 4; i++) {
-        const f = minFlux + (i / 4) * (maxFlux - minFlux);
-        const y = fluxToY(f);
-        ctx.beginPath();
-        ctx.moveTo(padLeft, y);
-        ctx.lineTo(padLeft + plotW, y);
-        ctx.stroke();
-        ctx.fillText(`${f.toFixed(0)} mJy`, 8, y + 3);
-      }
-
-      // Draw Ice Absorption Bands Shading
-      const iceBands = [
-        { name: "💧 Water Ice (H₂O)", wave: 3.05, fwhm: 0.35, color: "rgba(56, 189, 248, 0.15)" },
-        { name: "🌿 Methanol", wave: 3.53, fwhm: 0.12, color: "rgba(52, 211, 153, 0.12)" },
-        { name: "🧊 Dry Ice (CO₂)", wave: 4.27, fwhm: 0.15, color: "rgba(251, 191, 36, 0.18)" },
-        { name: "❄️ CO Ice", wave: 4.67, fwhm: 0.09, color: "rgba(168, 85, 247, 0.16)" }
-      ];
-
-      iceBands.forEach(b => {
-        const x1 = waveToX(b.wave - b.fwhm / 2);
-        const x2 = waveToX(b.wave + b.fwhm / 2);
-        ctx.fillStyle = b.color;
-        ctx.fillRect(x1, padTop, x2 - x1, plotH);
-        ctx.fillStyle = "#fbbf24";
-        ctx.fillText(b.name, (x1 + x2) / 2 - 20, padTop + 14);
-      });
-
-      // 1. Draw Epoch A Curve (Cyan)
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      spectralData.forEach((d, idx) => {
-        const x = waveToX(d.wavelength_um);
-        const y = fluxToY(d.flux_epoch_a_mjy);
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      // 2. Draw Epoch B Curve (Rose)
-      ctx.strokeStyle = "#f43f5e";
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      spectralData.forEach((d, idx) => {
-        const x = waveToX(d.wavelength_um);
-        const y = fluxToY(d.flux_epoch_b_mjy);
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      spectralData.forEach(d => {
-        const x = waveToX(d.wavelength_um);
-        const yA = fluxToY(d.flux_epoch_a_mjy);
-        const yB = fluxToY(d.flux_epoch_b_mjy);
-
-        ctx.fillStyle = "#38bdf8";
-        ctx.fillRect(x - 1.5, yA - 1.5, 3, 3);
-
-        ctx.fillStyle = "#f43f5e";
-        ctx.fillRect(x - 1.5, yB - 1.5, 3, 3);
-      });
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "11px 'Inter', sans-serif";
-      ctx.fillText("Infrared Heat Color (Wavelength \u03BB in Microns)", padLeft + plotW / 2 - 100, padTop + plotH + 36);
-    }
-
-    function explainChemicalFeature(chem) {
-      if (chem === 'h2o') {
-        alert("💧 Frozen Water Ice (H₂O) at 3.05 µm:\n\n" +
-              "Notice the valley in the line around 3.05 microns? Cold water ice crystals in space absorb that specific wavelength of light!\n\n" +
-              "Why it matters: Scientists study this to see how water gets packed into comets and asteroid belts, potentially seeding future oceans on new planets!");
-      } else if (chem === 'co2') {
-        alert("🧊 Carbon Dioxide Dry Ice (CO₂) at 4.27 µm:\n\n" +
-              "This sharp dip indicates frozen dry ice! In the freezing cold of interstellar clouds (-250°C), carbon dioxide freezes directly onto grains of stardust.");
-      } else if (chem === 'co') {
-        alert("❄️ Carbon Monoxide Ice (CO) at 4.67 µm:\n\n" +
-              "Carbon monoxide freezes at an extraordinarily cold temperature (around -245°C). Detecting it means we are looking at pristine, undisturbed cosmic ice that has never been warmed up by starlight!");
-      } else if (chem === 'ch3oh') {
-        alert("🌿 Methanol (Space Alcohol) at 3.53 µm:\n\n" +
-              "Methanol is an organic molecule that acts as a vital stepping stone toward amino acids and the chemistry of life!");
-      }
-    }
-
-    // --- Multi-Epoch Light Curve Canvas ---
-    function renderLightCurve(epochs) {
-      const canvas = document.getElementById("lightcurve-canvas");
-      if (!canvas || !epochs || epochs.length === 0) return;
-      const ctx = canvas.getContext("2d");
-      const dpr = window.devicePixelRatio || 1;
-
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const w = rect.width;
-      const h = rect.height;
-      const padL = 50, padR = 30, padT = 20, padB = 35;
-      const pW = w - padL - padR;
-      const pH = h - padT - padB;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const fluxes = epochs.map(e => e.total_flux_mjy);
-      const minF = Math.min(...fluxes) * 0.85;
-      const maxF = Math.max(...fluxes) * 1.15;
-
-      function getX(idx) {
-        return padL + (idx / (epochs.length - 1)) * pW;
-      }
-      function getY(val) {
-        return padT + pH - ((val - minF) / (maxF - minF + 1e-4)) * pH;
-      }
-
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      epochs.forEach((ep, i) => {
-        const x = getX(i);
-        const y = getY(ep.total_flux_mjy);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      epochs.forEach((ep, i) => {
-        const x = getX(i);
-        const y = getY(ep.total_flux_mjy);
-
-        ctx.fillStyle = "rgba(56, 189, 248, 0.2)";
-        ctx.beginPath();
-        ctx.arc(x, y, 9, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#38bdf8";
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#f1f5f9";
-        ctx.font = "10px 'JetBrains Mono', monospace";
-        ctx.fillText(`${ep.total_flux_mjy.toFixed(0)} mJy`, x - 18, y - 12);
-        ctx.fillStyle = "#64748b";
-        ctx.fillText(`Pass ${i + 1}`, x - 15, padT + pH + 18);
-      });
-    }
-
-    // --- Scientific Actions ---
-    function exportDataCSV() {
-      window.location.href = `/api/export/${activeTargetId}/csv`;
-    }
-
-    function copyAstropySnippet() {
-      const code = `# PROMETHEUS - SPHEREx Reproducible Astropy Analysis
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-from astropy.table import Table
-
-# Initialize Coordinates
-target = SkyCoord(ra=69.97458*u.deg, dec=26.05272*u.deg, frame='icrs')
-print(f"J2000 Coordinates: {target.to_string('hmsdms')}")
-print(f"Galactic: {target.galactic}")
-
-# Load multi-epoch SPHEREx spectrophotometry
-url = "http://127.0.0.1:5000/api/export/${activeTargetId}/csv"
-spec_table = Table.read(url, format='ascii.csv', header_start=4)
-print(f"Loaded {len(spec_table)} SPHEREx channels across 6 LVF bands")`;
-
-      navigator.clipboard.writeText(code).then(() => {
-        alert("Astropy Python script snippet copied to clipboard!\nPaste in Jupyter or Python to reproduce the calculations locally.");
-      });
-    }
-
-    // --- Client-Side Fallback Generator ---
-    function generateClientSideComparison() {
-      const mockComp = {
-        target: {
-          id: activeTargetId,
-          name: activeTargetId.toUpperCase(),
-          layman_title: "The Baby Star in an Ice Blanket",
-          layman_badge: "Baby Sun & Frozen Water"
-        },
-        layman_narrative: {
-          story: "A newborn baby star surrounded by giant clouds of real frozen water ice and space frost. Over 6 months, its brightness flickered as it fed on cold dust clouds.",
-          date_comparison: "Comparing April 2025 with October 2025 (6 Months Later)",
-          motion_badge: "Stationary Position",
-          motion_story: "Anchor steady: It did not budge in position relative to distant background stars.",
-          bright_badge: "+8.0% Brighter",
-          bright_story: "Energy surge: The star got noticeably brighter between dates, like turning up a lamp dimmer switch.",
-          chem_badge: "Frozen Water Ice Detected",
-          chem_story: "Just like ice cubes in your freezer, billions of frozen water crystals are floating in cold clouds around this star!"
-        },
-        epoch_a: {
-          name: "Epoch 1 (April 15, 2025)",
-          date: "2025-04-15",
-          mjd: 60780.0,
-          total_flux_mjy: 850.0,
-          render: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256' style='background:%23050812'><circle cx='128' cy='128' r='20' fill='%23ff9900'/><circle cx='128' cy='128' r='6' fill='%23ffffff'/></svg>",
-          coordinates: { ra_hms: "04h39m53.9s", dec_dms: "+26°03'09.8\"", ecliptic_lon_deg: 71.4, ecliptic_lat_deg: 4.8, galactic_l_deg: 175.2, galactic_b_deg: -16.8 }
-        },
-        epoch_b: {
-          name: "Epoch 2 (October 15, 2025)",
-          date: "2025-10-15",
-          mjd: 60963.0,
-          total_flux_mjy: 918.0,
-          render: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256' style='background:%23050812'><circle cx='129' cy='127' r='22' fill='%23ffaa22'/><circle cx='129' cy='127' r='7' fill='%23ffffff'/></svg>",
-          coordinates: { ra_hms: "04h39m53.9s", dec_dms: "+26°03'09.7\"", ecliptic_lon_deg: 71.4, ecliptic_lat_deg: 4.8, galactic_l_deg: 175.2, galactic_b_deg: -16.8 }
-        },
-        astrometry: {
-          separation_arcsec: 0.009,
-          delta_ra_arcsec: 0.003,
-          delta_dec_arcsec: -0.009,
-          position_angle_deg: 162.5,
-          delta_time_days: 183.0,
-          significance_sigma: 0.06
-        },
-        photometry: {
-          flux_delta_mjy: 68.0,
-          flux_pct_change: 8.0,
-          variability_index: 0.0769
-        },
-        spectroscopy: {
-          reduced_chi_square: 1.14,
-          spectral_diff: Array.from({length: 102}, (_, i) => {
-            const w = 0.75 + (i / 101) * 4.25;
-            const dip = Math.exp(-0.5 * ((w - 3.05)/0.2)**2) * 200;
-            return {
-              wavelength_um: parseFloat(w.toFixed(3)),
-              flux_epoch_a_mjy: 500 + Math.sin(w)*80 - dip,
-              flux_epoch_b_mjy: 540 + Math.sin(w)*85 - dip*0.95
-            };
-          })
-        },
-        difference_image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128' style='background:%23000000'><circle cx='64' cy='64' r='14' fill='%23f43f5e'/></svg>"
+    // --- Time-Lapse Morph Engine ---
+    function renderMorphFrame(target, epA, epB, t, showOverlays, showGrid) {
+      const canvas = document.getElementById("canvas-single-interactive");
+      const lerpCenter = {
+        x: epA.pixelCenter.x + (epB.pixelCenter.x - epA.pixelCenter.x) * t,
+        y: epA.pixelCenter.y + (epB.pixelCenter.y - epA.pixelCenter.y) * t
       };
-      activeComparisonData = mockComp;
-      renderComparison(mockComp);
+      const lerpFlux = epA.fluxScale + (epB.fluxScale - epA.fluxScale) * t;
+      const lerpFlare = epA.flare + (epB.flare - epA.flare) * t;
+
+      CitizenEngine.renderEpochCanvas(target, t < 0.5 ? epA : epB, {
+        canvas,
+        size: 420,
+        showOverlays,
+        showGrid,
+        overrideCenter: lerpCenter,
+        overrideFluxScale: lerpFlux,
+        overrideFlare: lerpFlare
+      });
+
+      const pct = Math.round(t * 100);
+      const tag = document.getElementById("single-mode-live-tag");
+      tag.textContent = pct < 50
+        ? `${epA.epoch.shortDate} → (${pct}%)`
+        : `→ ${epB.epoch.shortDate} (${pct}%)`;
+      tag.style.color = "var(--accent-emerald)";
+
+      const lbl = document.getElementById("lbl-morph-pct");
+      const slider = document.getElementById("morph-scrub-slider");
+      if (lbl) lbl.textContent = `${pct}%`;
+      if (slider) slider.value = pct;
     }
+
+    function startMorphLoop(target, epA, epB, showOverlays, showGrid) {
+      renderMorphFrame(target, epA, epB, morphProgress, showOverlays, showGrid);
+      if (!morphPlaying) return;
+      let dir = 1;
+      morphTimer = setInterval(() => {
+        morphProgress += dir * 0.035;
+        if (morphProgress >= 1) { morphProgress = 1; dir = -1; }
+        if (morphProgress <= 0) { morphProgress = 0; dir = 1; }
+        renderMorphFrame(target, epA, epB, morphProgress, showOverlays, showGrid);
+      }, 65);
+    }
+
+    function toggleMorphPlayback() {
+      morphPlaying = !morphPlaying;
+      renderActiveModeStage();
+    }
+
+    function scrubMorph(val) {
+      morphPlaying = false;
+      stopAllAnimations();
+      morphProgress = parseFloat(val) / 100.0;
+      if (latestComparison) {
+        renderMorphFrame(
+          latestComparison.target,
+          latestComparison.epochA,
+          latestComparison.epochB,
+          morphProgress,
+          document.getElementById("chk-show-overlays").checked,
+          document.getElementById("chk-show-grid").checked
+        );
+      }
+      const btn = document.getElementById("btn-morph-play");
+      if (btn) btn.textContent = "▶️ Play Movie";
+    }
+
+    // --- Separate Q&A Agent Integration ---
+    function setAgentLevel(lvl) {
+      agentLevel = lvl;
+      document.querySelectorAll(".level-pill-btn").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-lvl") === lvl);
+      });
+      if (latestComparison) renderAgentQABottomPanel(latestComparison);
+    }
+
+    function renderAgentQABottomPanel(comp) {
+      document.getElementById("agent-subtitle").textContent =
+        `Independent Q&A Agent analyzing ${comp.target.shortName}: ${comp.epochA.epoch.shortDate} vs ${comp.epochB.epoch.shortDate}`;
+
+      const qaItems = CitizenScienceAgent.generateAllPossibleQA(comp, agentLevel);
+      const grid = document.getElementById("qa-cards-grid");
+      grid.innerHTML = qaItems.map(item => `
+        <div class="qa-card">
+          <div class="qa-card-top">
+            <span class="qa-badge">${esc(item.badge)}</span>
+            <span class="qa-highlight">${esc(item.highlight)}</span>
+          </div>
+          <div class="qa-question">Q: ${esc(item.question)}</div>
+          <div class="qa-answer">${formatBoldMarkdown(esc(item.answer))}</div>
+        </div>
+      `).join("");
+    }
+
+    function formatBoldMarkdown(text) {
+      return text.replace(/\*\*(.*?)\*\*/g, "<strong style='color:#f8fafc;'>$1</strong>");
+    }
+
+    function askAgentFromInput() {
+      const inp = document.getElementById("agent-question-input");
+      const q = inp.value.trim();
+      if (!q || !latestComparison) return;
+      showLiveAgentReply(q);
+    }
+
+    function askQuickQuestion(q) {
+      document.getElementById("agent-question-input").value = q;
+      if (latestComparison) showLiveAgentReply(q);
+    }
+
+    function showLiveAgentReply(q) {
+      const box = document.getElementById("agent-live-answer");
+      const reply = CitizenScienceAgent.answerUserQuestion(q, latestComparison, agentLevel);
+      box.innerHTML = `<div style="font-size:0.76rem;color:var(--accent-emerald);font-family:var(--font-mono);margin-bottom:6px;">🤖 AGENT REPLY TO: “${esc(q)}”</div>` + formatBoldMarkdown(esc(reply));
+      box.classList.remove("hidden-view");
+    }
+
+    document.getElementById("agent-question-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") askAgentFromInput();
+    });
 
     // --- Initial Boot ---
     window.addEventListener("DOMContentLoaded", () => {
-      setExperienceMode("simple");
-      loadTargetAndCompare();
+      initDateSelectors();
+      renderTargetGallery();
+
+      // If URL already explicitly specifies ?target=..., jump directly into comparison for that target;
+      // otherwise show the Target Selection Screen FIRST (Step 1) as requested!
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const initialTarget = params.get("target");
+        if (initialTarget) {
+          selectTargetAndOpenStudio(initialTarget);
+        }
+      } catch (_) {}
     });
   </script>
 </body>
