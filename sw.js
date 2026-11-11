@@ -1,5 +1,5 @@
 /* ============================================================
-   TEAM PROMETHEUS — SERVICE WORKER (prometheus-v1)
+   TEAM PROMETHEUS — SERVICE WORKER (prometheus-v2)
    Offline & repeat-visitor asset caching layer
    - Precaches app shell (HTML, CSS, JS)
    - Network-first with cache fallback for navigation/HTML
@@ -7,7 +7,7 @@
    - Stale-while-revalidate for scripts, styles, fonts, media
    ============================================================ */
 
-const CACHE_NAME = 'prometheus-v1';
+const CACHE_NAME = 'prometheus-v2';
 
 const PRECACHE_URLS = [
   '/',

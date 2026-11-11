@@ -286,25 +286,34 @@ function finishPreloader() {
   } catch(e) {}
 
   if (preloader) {
+    document.documentElement.classList.add('preloaded');
     preloader.style.transformOrigin = 'center 85%';
-    gsap.to(preloader, {
-      opacity: 0,
-      scale: 1.08,
-      filter: 'brightness(1.8) blur(8px)',
-      duration: 0.65,
-      ease: 'power3.inOut',
-      onComplete: () => {
-        preloader.classList.add('done');
-        preloader.style.display = 'none'; // Guarantee preloader is fully gone
-        loaderFrames = null; // Release 240 loader frame bitmaps to free memory
-        if (nav) nav.classList.add('visible');
-        if (hud) hud.classList.add('visible');
+    const finalizeReveal = () => {
+      preloader.classList.add('done');
+      preloader.style.display = 'none'; // Guarantee preloader is fully gone
+      loaderFrames = null; // Release 240 loader frame bitmaps to free memory
+      if (nav) nav.classList.add('visible');
+      if (hud) hud.classList.add('visible');
+      if (window.gsap) {
         initGSAP();
         if (window.ScrollTrigger) ScrollTrigger.refresh();
       }
-    });
+    };
+    if (window.gsap) {
+      gsap.to(preloader, {
+        opacity: 0,
+        scale: 1.08,
+        filter: 'brightness(1.8) blur(8px)',
+        duration: 0.65,
+        ease: 'power3.inOut',
+        onComplete: finalizeReveal
+      });
+    } else {
+      finalizeReveal();
+    }
   } else {
-    initGSAP();
+    document.documentElement.classList.add('preloaded');
+    if (window.gsap) initGSAP();
   }
 }
 
@@ -360,7 +369,6 @@ function renderLoader(timestamp) {
   if (loaderCanvas && loaderCtx && loaderFrames && loaderFrames.length > 0) {
     const cw = window.innerWidth;
     const ch = window.innerHeight;
-    loaderCtx.clearRect(0, 0, cw, ch);
 
     const baseIdx = Math.floor(loaderDisplayFrame);
     const nextIdx = Math.min(baseIdx + 1, LOADER_TOTAL_FRAMES - 1);
@@ -372,6 +380,7 @@ function renderLoader(timestamp) {
       : null;
 
     if (imgA) {
+      loaderCtx.clearRect(0, 0, cw, ch);
       drawLoaderFrame(imgA, 1.0);
       if (subAlpha > 0.01 && imgB && imgB !== imgA) {
         drawLoaderFrame(imgB, subAlpha);
@@ -1258,6 +1267,6 @@ if ('serviceWorker' in navigator) {
 
 /* ── INIT ──────────────────────────────────────────────────── */
 startPreloading();
-lucide.createIcons();
+if (window.lucide) lucide.createIcons();
 
 })();
