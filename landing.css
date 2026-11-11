@@ -1093,3 +1093,78 @@ body::after{
   pointer-events:none;z-index:1;
   background:radial-gradient(ellipse at center,transparent 60%,rgba(3,5,8,.6) 100%);
 }
+
+/* ── MOBILE VIEWPORT & TOUCH OPTIMIZATION (DESKTOP PARITY PRESERVED) ── */
+@media (max-width: 768px) {
+  .rocket-hero-popup {
+    width: 100%;
+    overflow: hidden;
+    margin: 16px 0 20px;
+  }
+  .rocket-craft-group {
+    flex-direction: column !important;
+    white-space: normal !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .banner-tether-cables {
+    display: none !important;
+  }
+  .rocket-sprite {
+    width: 140px !important;
+    height: 55px !important;
+    margin: 0 auto 12px !important;
+  }
+  .banner-body {
+    border-radius: 16px !important;
+    border-right: 1.5px solid rgba(255, 255, 255, .38) !important;
+    padding: 10px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .banner-links {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 11px !important;
+  }
+  .nav-chip {
+    display: none !important;
+  }
+  .nav-brand {
+    font-size: 12px !important;
+  }
+  .nav-cta {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  .nav {
+    padding: 0 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-line-1 {
+    font-size: clamp(26px, 7.5vw, 36px) !important;
+    letter-spacing: -0.02em !important;
+  }
+  .hero-line-2 {
+    font-size: clamp(28px, 8.5vw, 40px) !important;
+    letter-spacing: -0.02em !important;
+  }
+  .hero-meta {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px 12px !important;
+    font-size: 8.5px !important;
+    padding: 6px 14px !important;
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse), (hover: none) {
+  #cur, #cur-ring {
+    display: none !important;
+  }
+}
+

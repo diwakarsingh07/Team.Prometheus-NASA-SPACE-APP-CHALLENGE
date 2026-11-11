@@ -1168,3 +1168,47 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── MOBILE VIEWPORT & TOUCH OPTIMIZATION (DESKTOP PARITY PRESERVED) ── */
+@media (max-width: 480px) {
+  .target-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .picker-hero {
+    padding: 18px 14px !important;
+  }
+  .picker-search-box {
+    min-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .wireframe-workspace-grid {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #center-compare-stage {
+    order: 1 !important;
+  }
+  #modes-sidebar {
+    order: 2 !important;
+  }
+  #terms-sidebar {
+    order: 3 !important;
+  }
+  .top-nav-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+  .nav-left-group {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+  .nav-btn-scientist {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+}
+

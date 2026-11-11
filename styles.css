@@ -1174,3 +1174,78 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(56, 189, 248, 0.5);
 }
+
+/* ── MOBILE VIEWPORT & TOUCH OPTIMIZATION (DESKTOP PARITY PRESERVED) ── */
+@media (max-width: 1024px) {
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+  .app-body {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: visible !important;
+  }
+  .workspace-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .viewport-center {
+    order: 1 !important;
+    min-height: 340px !important;
+    height: auto !important;
+  }
+  .sidebar-left {
+    order: 2 !important;
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    overflow: visible !important;
+  }
+  .sidebar-right {
+    order: 3 !important;
+    width: 100% !important;
+    border-left: none !important;
+    overflow: visible !important;
+  }
+  .app-header {
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 8px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .header-telemetry, .brand-sub {
+    display: none !important;
+  }
+  .header-right {
+    margin-left: auto !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .header-right .btn span {
+    display: none !important;
+  }
+  .app-footer {
+    height: auto !important;
+    padding: 10px 12px 16px !important;
+    gap: 8px !important;
+  }
+  .spectral-tick-labels span:nth-child(2),
+  .spectral-tick-labels span:nth-child(4),
+  .spectral-tick-labels span:nth-child(5) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .coord-input-grid, .telemetry-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .telemetry-card.full-width {
+    grid-column: span 1 !important;
+  }
+}
+

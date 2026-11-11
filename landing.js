@@ -79,24 +79,113 @@ let loaderStartTime = null;
 const LOADER_TOTAL_DURATION = 6800; // ms: total cinematic curve (slow assembly + fast blastoff)
 
 function getCinematicRocketProgress(elapsed) {
+  if (elapsed >= LOADER_TOTAL_DURATION) return 1.0;
   const t = Math.min(Math.max(elapsed / LOADER_TOTAL_DURATION, 0), 1);
   // Multi-stage cinematic curve:
   // Phase 1 (0 -> 0.60): Slow & majestic 3D exploded schematic exploration (0% to 68%)
   // Phase 2 (0.60 -> 0.80): Reassembly & fueling locks (68% to 85%)
   // Phase 3 (0.80 -> 1.00): FAST explosive liftoff & blastoff (85% to 100%!)
+  let rawRatio;
   if (t < 0.60) {
     const subT = t / 0.60;
     const ease = 0.5 - 0.5 * Math.cos(subT * Math.PI);
-    return ease * 0.68;
+    rawRatio = ease * 0.68;
   } else if (t < 0.80) {
     const subT = (t - 0.60) / 0.20;
-    return 0.68 + subT * 0.17;
+    rawRatio = 0.68 + subT * 0.17;
   } else {
     // FAST blastoff launch acceleration
     const subT = (t - 0.80) / 0.20;
     const accel = Math.pow(subT, 1.8);
-    return 0.85 + accel * 0.15;
+    rawRatio = 0.85 + accel * 0.15;
   }
+
+  // Initial 4% visual kick: eliminate 0% flat spot/dead-zone stall so progress bar & rocket move immediately
+  const INITIAL_KICK = 0.04;
+  return Math.min(1.0, Math.max(INITIAL_KICK, INITIAL_KICK + rawRatio * (1 - INITIAL_KICK)));
+}
+
+/* ── PROGRESSIVE FRAME LOADER QUEUE (Non-blocking decode & windowing) ── */
+const LOADER_PRIORITY_FRAMES = 24;  // Priority batch loaded immediately for instant animation kick
+const LOADER_WINDOW_AHEAD = 30;     // Sliding lookahead window ahead of current playback frame
+const MAX_CONCURRENT_LOADS = 6;     // Concurrency limit to prevent network congestion
+const loaderFrameStatus = new Uint8Array(LOADER_TOTAL_FRAMES); // 0: unrequested, 1: loading, 2: loaded, 3: failed
+let activeLoaderRequests = 0;
+
+function pumpLoaderQueue() {
+  if (preloaderExited || loaderFinished || !loaderFrames) return;
+
+  // Window calculation: always ensure at least LOADER_PRIORITY_FRAMES are in queue,
+  // then slide ahead based on loaderDisplayFrame position
+  const maxTargetIndex = Math.min(
+    LOADER_TOTAL_FRAMES - 1,
+    Math.max(LOADER_PRIORITY_FRAMES - 1, Math.floor(loaderDisplayFrame) + LOADER_WINDOW_AHEAD)
+  );
+
+  while (activeLoaderRequests < MAX_CONCURRENT_LOADS) {
+    let nextIdx = -1;
+    for (let i = 0; i <= maxTargetIndex; i++) {
+      if (loaderFrameStatus[i] === 0) {
+        nextIdx = i;
+        break;
+      }
+    }
+
+    if (nextIdx === -1) break; // All frames in current window requested
+
+    loaderFrameStatus[nextIdx] = 1;
+    activeLoaderRequests++;
+
+    const img = new Image();
+    img.src = LOADER_FRAME_PATH(nextIdx + 1);
+
+    const onDone = (success) => {
+      activeLoaderRequests--;
+      loaderFrameStatus[nextIdx] = success ? 2 : 3;
+      if (success && loaderFrames) {
+        loaderFrames[nextIdx] = img;
+      }
+      pumpLoaderQueue();
+    };
+
+    // Non-blocking asynchronous decode
+    if (typeof img.decode === 'function') {
+      img.decode()
+        .then(() => onDone(true))
+        .catch(() => {
+          // If image already finished or errored before decode rejected, onerror will never fire again
+          if (img.complete) {
+            onDone(img.naturalWidth > 0);
+          } else {
+            img.onload = () => onDone(true);
+            img.onerror = () => onDone(false);
+          }
+        });
+    } else {
+      img.onload = () => onDone(true);
+      img.onerror = () => onDone(false);
+    }
+  }
+}
+
+function getBestLoaderFrame(idx) {
+  if (!loaderFrames) return null;
+  if (loaderFrames[idx] && loaderFrames[idx].complete && loaderFrames[idx].naturalWidth) {
+    return loaderFrames[idx];
+  }
+  // Look backwards for closest decoded frame
+  for (let i = idx - 1; i >= 0; i--) {
+    if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
+      return loaderFrames[i];
+    }
+  }
+  // Look forwards if first frames are still decoding
+  for (let i = idx + 1; i < LOADER_TOTAL_FRAMES; i++) {
+    if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
+      return loaderFrames[i];
+    }
+  }
+  return null;
 }
 
 function sizeLoaderCanvas() {
@@ -188,6 +277,9 @@ function finishPreloader() {
 
   playLiftoffRumble();
 
+  // Preload main deep space story frames now that preloader has completed
+  preloadStoryFrames();
+
   // Force first frame of deep space story so hero is instantly visible
   try {
     if (typeof drawFrame === 'function') drawFrame(0);
@@ -262,6 +354,9 @@ function renderLoader(timestamp) {
   const lerpRate = loaderDisplayFrame < 185 ? 0.085 : 0.24;
   loaderDisplayFrame += (loaderTargetFrame - loaderDisplayFrame) * lerpRate;
 
+  // Pump progressive windowed queue ahead of playback
+  pumpLoaderQueue();
+
   if (loaderCanvas && loaderCtx && loaderFrames && loaderFrames.length > 0) {
     const cw = window.innerWidth;
     const ch = window.innerHeight;
@@ -271,12 +366,14 @@ function renderLoader(timestamp) {
     const nextIdx = Math.min(baseIdx + 1, LOADER_TOTAL_FRAMES - 1);
     const subAlpha = loaderDisplayFrame - baseIdx;
 
-    let imgA = loaderFrames[baseIdx];
-    let imgB = loaderFrames[nextIdx];
+    let imgA = getBestLoaderFrame(baseIdx);
+    let imgB = (loaderFrames && loaderFrames[nextIdx] && loaderFrames[nextIdx].complete && loaderFrames[nextIdx].naturalWidth)
+      ? loaderFrames[nextIdx]
+      : null;
 
-    if (imgA && imgA.complete && imgA.naturalWidth) {
+    if (imgA) {
       drawLoaderFrame(imgA, 1.0);
-      if (subAlpha > 0.01 && imgB && imgB.complete && imgB.naturalWidth) {
+      if (subAlpha > 0.01 && imgB && imgB !== imgA) {
         drawLoaderFrame(imgB, subAlpha);
       }
     }
@@ -301,26 +398,29 @@ function renderLoader(timestamp) {
 
 function startPreloading() {
   sizeLoaderCanvas();
-  // Preload 240 rocket loader frames
-  for (let i = 1; i <= LOADER_TOTAL_FRAMES; i++) {
-    const img = new Image();
-    img.src = LOADER_FRAME_PATH(i);
-    loaderFrames[i - 1] = img;
-  }
+  // Initialize loaderFrames array
+  loaderFrames = new Array(LOADER_TOTAL_FRAMES);
+
+  // Pump initial 24 priority frames immediately with async non-blocking decode
+  pumpLoaderQueue();
 
   // Start 240fps RAF loop immediately
   loaderRafId = requestAnimationFrame(renderLoader);
 
-  // Preload main deep space story frames
-  preloadStoryFrames();
+  // Note: Story frames (frames_v2/) are deferred to finishPreloader() so loader frames get 100% bandwidth
 }
 
 function preloadStoryFrames() {
+  if (frames.length > 0) return; // Prevent duplicate invocation
   for (let i = 1; i <= TOTAL_FRAMES; i++) {
     const img = new Image();
     img.src = FRAME_PATH(i);
     img.onload = img.onerror = () => {
       loaded++;
+      if (loaded >= 1) {
+        ready = true;
+        try { drawFrame(displayFrame || 0); } catch(e) {}
+      }
       if (loaded >= TOTAL_FRAMES) {
         ready = true;
       }
@@ -352,6 +452,35 @@ function sizeCanvas() {
 window.addEventListener('resize', sizeCanvas);
 sizeCanvas();
 
+function getBestStoryFrame(idx) {
+  if (!frames || !frames.length) return null;
+  const target = Math.max(0, Math.min(Math.floor(idx), TOTAL_FRAMES - 1));
+  if (frames[target] && frames[target].complete && frames[target].naturalWidth) {
+    return frames[target];
+  }
+  // Look backwards for closest decoded story frame
+  for (let i = target - 1; i >= 0; i--) {
+    if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
+      return frames[i];
+    }
+  }
+  // Look forwards if first frames are still decoding
+  for (let i = target + 1; i < TOTAL_FRAMES; i++) {
+    if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
+      return frames[i];
+    }
+  }
+  // Fallback to loader frames if available
+  if (typeof loaderFrames !== 'undefined' && loaderFrames && loaderFrames.length) {
+    for (let i = loaderFrames.length - 1; i >= 0; i--) {
+      if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
+        return loaderFrames[i];
+      }
+    }
+  }
+  return null;
+}
+
 /* ── DRAW ENGINE — Sub-frame cross-fade blending ───────────── */
 function drawFrame(floatIdx) {
   if (!frames.length) return;
@@ -362,13 +491,17 @@ function drawFrame(floatIdx) {
   const W = window.innerWidth;
   const H = window.innerHeight;
 
+  let imgA = frames[lo];
+  let imgB = frames[hi];
+  if (!imgA || !imgA.complete || !imgA.naturalWidth) {
+    imgA = getBestStoryFrame(lo);
+    imgB = null;
+  }
+  if (!imgA) return;
+
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, W, H);
-
-  const imgA = frames[lo];
-  const imgB = frames[hi];
-  if (!imgA || !imgA.complete) return;
 
   // Contain-fit calculation
   const iw = imgA.naturalWidth || 1280;
@@ -384,7 +517,7 @@ function drawFrame(floatIdx) {
   ctx.drawImage(imgA, dx, dy, dw, dh);
 
   // Cross-fade next frame for sub-frame smoothness
-  if (t > 0.001 && imgB && imgB.complete) {
+  if (t > 0.001 && imgB && imgB.complete && imgB.naturalWidth) {
     ctx.globalAlpha = t;
     ctx.drawImage(imgB, dx, dy, dw, dh);
     ctx.globalAlpha = 1;
@@ -890,15 +1023,26 @@ document.addEventListener('click', e => {
         drawReveal();
       }
     });
-    // Touch support
+    // Touch support (vertical scrolling preserved when not actively brushing or dragging split)
+    revealStage.addEventListener('touchstart', e => {
+      if (mode === 'split') draggingSplit = true;
+    }, { passive: true });
+    revealStage.addEventListener('touchend', () => {
+      draggingSplit = false;
+    }, { passive: true });
+    revealStage.addEventListener('touchcancel', () => {
+      draggingSplit = false;
+    }, { passive: true });
     revealStage.addEventListener('touchmove', e => {
-      e.preventDefault();
-      const t = e.touches[0];
-      if (mode === 'brush') paint(t.clientX, t.clientY);
-      if (mode === 'split') {
-        const rect = revealStage.getBoundingClientRect();
-        splitX = Math.max(0, Math.min(1, (t.clientX - rect.left) / rect.width));
-        drawReveal();
+      if (mode === 'brush' || (mode === 'split' && draggingSplit)) {
+        e.preventDefault();
+        const t = e.touches[0];
+        if (mode === 'brush') paint(t.clientX, t.clientY);
+        if (mode === 'split') {
+          const rect = revealStage.getBoundingClientRect();
+          splitX = Math.max(0, Math.min(1, (t.clientX - rect.left) / rect.width));
+          drawReveal();
+        }
       }
     }, { passive: false });
   }
@@ -1100,6 +1244,17 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     }
   });
 });
+
+/* ── SERVICE WORKER REGISTRATION ───────────────────────────── */
+if ('serviceWorker' in navigator) {
+  if (document.readyState === 'complete') {
+    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed:', err));
+  } else {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed:', err));
+    });
+  }
+}
 
 /* ── INIT ──────────────────────────────────────────────────── */
 startPreloading();
