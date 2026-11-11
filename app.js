@@ -287,6 +287,14 @@
     epoch2: new Image(),
     diff: new Image()
   };
+  Object.values(realFITSImages).forEach(img => {
+    img.addEventListener('load', () => {
+      const tile = ASTRONOMICAL_CATALOG[state.activeTileKey];
+      if (tile && tile.isRealFITS && DOM.canvas) {
+        renderViewport();
+      }
+    });
+  });
   realFITSImages.epoch1.src = ASTRONOMICAL_CATALOG.realSpherex.imgEpoch1;
   realFITSImages.epoch2.src = ASTRONOMICAL_CATALOG.realSpherex.imgEpoch2;
   realFITSImages.diff.src = ASTRONOMICAL_CATALOG.realSpherex.imgDiff;
@@ -855,7 +863,8 @@
 
   function drawStarPoint(x, y, radius, flux, isCandidate = false) {
     let intensity = (flux / 255);
-    intensity = Math.max(0, Math.min(1, (intensity - state.blackCutoffPct / 100) / (state.whiteCutoffPct / 100 - state.blackCutoffPct / 100)));
+    const denom = Math.max(0.05, (state.whiteCutoffPct / 100) - (state.blackCutoffPct / 100));
+    intensity = Math.max(0, Math.min(1, (intensity - state.blackCutoffPct / 100) / denom));
 
     if (intensity <= 0) return;
 
@@ -942,6 +951,7 @@
     const pos = state.activeEpoch === 1 ? tile.targetPixelPos : tile.targetEpoch2Pos;
     const rect = DOM.canvas.getBoundingClientRect();
     const stageRect = DOM.canvasStage.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
 
     const scaleX = rect.width / DOM.canvas.width;
     const scaleY = rect.height / DOM.canvas.height;
@@ -973,11 +983,22 @@
 
   function setMode(mode) {
     state.activeMode = mode;
-    [DOM.btnModeBlink, DOM.btnModeDiff, DOM.btnModeStack, DOM.btnModeSplit].forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.mode === mode);
+    [
+      DOM.btnModeBlink,
+      DOM.btnModeDiff,
+      DOM.btnModeSwipe,
+      DOM.btnModeRgb,
+      DOM.btnModeFade,
+      DOM.btnModeStack
+    ].forEach(btn => {
+      if (btn) btn.classList.toggle('active', btn.dataset.mode === mode);
     });
 
-    DOM.blinkControlsBox.style.display = mode === 'blink' ? 'flex' : 'none';
+    if (DOM.blinkControlsBox) DOM.blinkControlsBox.classList.toggle('hidden', mode !== 'blink');
+    if (DOM.swipeControlsBox) DOM.swipeControlsBox.classList.toggle('hidden', mode !== 'swipe');
+    if (DOM.fadeControlsBox) DOM.fadeControlsBox.classList.toggle('hidden', mode !== 'fade');
+    if (DOM.rgbControlsBox) DOM.rgbControlsBox.classList.toggle('hidden', mode !== 'rgb');
+
     renderViewport();
   }
 
@@ -985,6 +1006,7 @@
   // 6. CHART.JS 102-BAND SED SPECTRA GENERATION
   // --------------------------------------------------------------------------
   function initOrUpdateSEDChart(tile) {
+    if (typeof Chart === 'undefined' || !DOM.sedChartCanvas) return;
     if (sedChartInstance) {
       sedChartInstance.destroy();
     }
@@ -1121,8 +1143,18 @@
       if ([5, 15, 30, 60].includes(fovVal)) setFov(fovVal, false);
     }
 
-    if (target && ASTRONOMICAL_CATALOG[target]) {
-      syncCatalogTarget(target, false);
+    const targetAliases = {
+      planet_x: 'planetX',
+      l1527: 'realSpherex',
+      betelgeuse: 'rDraconis',
+      trappist1: 'rwAurigae',
+      iras08572: 'sedna',
+      orion_kl: 'realSpherex'
+    };
+    const resolvedTarget = (target && targetAliases[target]) ? targetAliases[target] : target;
+
+    if (resolvedTarget && ASTRONOMICAL_CATALOG[resolvedTarget]) {
+      syncCatalogTarget(resolvedTarget, false);
       return;
     }
 
@@ -1241,11 +1273,68 @@
       });
     });
 
-    // Comparison Mode Buttons (Blink, Subtract, Add/Coadd, Split)
-    DOM.btnModeBlink.addEventListener('click', () => setMode('blink'));
-    DOM.btnModeDiff.addEventListener('click', () => setMode('diff'));
-    DOM.btnModeStack.addEventListener('click', () => setMode('stack'));
-    DOM.btnModeSplit.addEventListener('click', () => setMode('split'));
+    // Comparison Mode Buttons (Blink, Subtract, Swipe, RGB, Dissolve, Coadd)
+    if (DOM.btnModeBlink) DOM.btnModeBlink.addEventListener('click', () => setMode('blink'));
+    if (DOM.btnModeDiff) DOM.btnModeDiff.addEventListener('click', () => setMode('diff'));
+    if (DOM.btnModeSwipe) DOM.btnModeSwipe.addEventListener('click', () => setMode('swipe'));
+    if (DOM.btnModeRgb) DOM.btnModeRgb.addEventListener('click', () => setMode('rgb'));
+    if (DOM.btnModeFade) DOM.btnModeFade.addEventListener('click', () => setMode('fade'));
+    if (DOM.btnModeStack) DOM.btnModeStack.addEventListener('click', () => setMode('stack'));
+
+    // Swipe Curtain Slider & Direct Canvas Curtain Dragging
+    if (DOM.swipeSlider) {
+      DOM.swipeSlider.addEventListener('input', (e) => {
+        state.swipePct = parseInt(e.target.value, 10);
+        if (DOM.swipePosDisplay) DOM.swipePosDisplay.textContent = `${state.swipePct}%`;
+        renderViewport();
+      });
+    }
+
+    function updateSwipeFromPointer(clientX) {
+      const rect = DOM.canvas.getBoundingClientRect();
+      if (!rect.width) return;
+      const pct = Math.max(0, Math.min(100, Math.round(((clientX - rect.left) / rect.width) * 100)));
+      state.swipePct = pct;
+      if (DOM.swipeSlider) DOM.swipeSlider.value = pct;
+      if (DOM.swipePosDisplay) DOM.swipePosDisplay.textContent = `${pct}%`;
+      renderViewport();
+    }
+
+    DOM.canvas.addEventListener('mousedown', (e) => {
+      if (state.activeMode === 'swipe') {
+        state.isDraggingSwipe = true;
+        updateSwipeFromPointer(e.clientX);
+      }
+    });
+    window.addEventListener('mouseup', () => { state.isDraggingSwipe = false; });
+    window.addEventListener('mousemove', (e) => {
+      if (state.isDraggingSwipe && state.activeMode === 'swipe') {
+        updateSwipeFromPointer(e.clientX);
+      }
+    });
+    DOM.canvas.addEventListener('touchstart', (e) => {
+      if (state.activeMode === 'swipe' && e.touches[0]) {
+        state.isDraggingSwipe = true;
+        updateSwipeFromPointer(e.touches[0].clientX);
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { state.isDraggingSwipe = false; });
+    window.addEventListener('touchmove', (e) => {
+      if (state.isDraggingSwipe && state.activeMode === 'swipe' && e.touches[0]) {
+        updateSwipeFromPointer(e.touches[0].clientX);
+      }
+    }, { passive: true });
+
+    // Alpha Dissolve / Cross-Fade Slider
+    if (DOM.fadeSlider) {
+      DOM.fadeSlider.addEventListener('input', (e) => {
+        state.fadePct = parseInt(e.target.value, 10);
+        if (DOM.fadePosDisplay) {
+          DOM.fadePosDisplay.textContent = `${100 - state.fadePct}% E1 / ${state.fadePct}% E2`;
+        }
+        renderViewport();
+      });
+    }
 
     // Multi-Mission Overlays
     DOM.overlayGaia.addEventListener('change', (e) => {
@@ -1315,6 +1404,7 @@
     // Canvas Crosshair Coordinates & Pixel Surface Flux Tracker
     DOM.canvas.addEventListener('mousemove', (e) => {
       const rect = DOM.canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       const x = Math.floor((e.clientX - rect.left) * (DOM.canvas.width / rect.width));
       const y = Math.floor((e.clientY - rect.top) * (DOM.canvas.height / rect.height));
 
@@ -1334,14 +1424,20 @@
       DOM.cursorFluxReadout.textContent = '-- MJy/sr';
     });
 
+    function safeRefreshIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
     // Share URL to Clipboard
     DOM.btnShareUrl.addEventListener('click', () => {
       navigator.clipboard.writeText(window.location.href).then(() => {
         DOM.btnShareUrl.innerHTML = `<i data-lucide="check"></i><span>URL Copied!</span>`;
-        lucide.createIcons();
+        safeRefreshIcons();
         setTimeout(() => {
           DOM.btnShareUrl.innerHTML = `<i data-lucide="link"></i><span>Share URL</span>`;
-          lucide.createIcons();
+          safeRefreshIcons();
         }, 1800);
       });
     });
@@ -1367,11 +1463,11 @@
       DOM.ledgerDriftRate.textContent = tile.properMotion;
 
       DOM.btnTagCandidate.innerHTML = `<i data-lucide="check"></i><span>Candidate Logged!</span>`;
-      lucide.createIcons();
+      safeRefreshIcons();
 
       setTimeout(() => {
         DOM.btnTagCandidate.innerHTML = `<i data-lucide="bookmark-plus"></i><span>Tag Shifting Candidate</span>`;
-        lucide.createIcons();
+        safeRefreshIcons();
       }, 1800);
     });
 
@@ -1412,7 +1508,9 @@
   // 9. INITIALIZATION LIFECYCLE
   // --------------------------------------------------------------------------
   function initializeEngine() {
-    lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
     setupEventListeners();
     parseUrlParameters();
     startBlinkLoop();
