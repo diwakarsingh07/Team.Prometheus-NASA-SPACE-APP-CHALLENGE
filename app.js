@@ -34,7 +34,10 @@
       snRatio: "9.2σ",
       flags: "0x00: Clean Point Source (QUAL_OK)",
       flagColor: "text-emerald",
-      isRealFITS: false,
+      isRealFITS: true,
+      imgEpoch1: "data/barnard_epoch1.png",
+      imgEpoch2: "data/barnard_epoch2.png",
+      imgDiff: "data/barnard_diff.png",
       stars: [
         [70, 90, 2.2, 170], [220, 110, 3.8, 225], [380, 80, 2.5, 180],
         [140, 290, 2.8, 195], [360, 240, 3.1, 200], [460, 360, 2.0, 150],
@@ -63,7 +66,10 @@
       snRatio: "6.8σ",
       flags: "0x00: Resolved Binary Pair (QUAL_OK)",
       flagColor: "text-emerald",
-      isRealFITS: false,
+      isRealFITS: true,
+      imgEpoch1: "data/epsilonIndi_epoch1.png",
+      imgEpoch2: "data/epsilonIndi_epoch2.png",
+      imgDiff: "data/epsilonIndi_diff.png",
       stars: [
         [90, 130, 2.8, 190], [210, 70, 4.2, 240], [390, 120, 2.0, 150],
         [120, 340, 1.9, 140], [330, 270, 2.4, 175], [450, 310, 3.0, 200],
@@ -94,7 +100,10 @@
       snRatio: "5.4σ",
       flags: "0x02: Faint Thermal Target (Near-IR Slicer Essential)",
       flagColor: "text-amber",
-      isRealFITS: false,
+      isRealFITS: true,
+      imgEpoch1: "data/wise0855_epoch1.png",
+      imgEpoch2: "data/wise0855_epoch2.png",
+      imgDiff: "data/wise0855_diff.png",
       stars: [
         [110, 80, 3.0, 200], [280, 100, 2.2, 160], [420, 90, 3.5, 220],
         [80, 270, 2.4, 175], [370, 280, 2.6, 185], [150, 400, 2.9, 195],
@@ -123,7 +132,10 @@
       snRatio: "12.5σ",
       flags: "0x04: Circumstellar Dust Obscuration Event",
       flagColor: "text-amber",
-      isRealFITS: false,
+      isRealFITS: true,
+      imgEpoch1: "data/rwAurigae_epoch1.png",
+      imgEpoch2: "data/rwAurigae_epoch2.png",
+      imgDiff: "data/rwAurigae_diff.png",
       isVariable: true,
       epoch1FluxMultiplier: 2.2, // Bright state in Epoch 1
       epoch2FluxMultiplier: 0.5, // Deep dimming eclipse in Epoch 2
@@ -154,7 +166,10 @@
       snRatio: "14.0σ",
       flags: "0x00: High-Amplitude Thermal Pulsation (QUAL_OK)",
       flagColor: "text-emerald",
-      isRealFITS: false,
+      isRealFITS: true,
+      imgEpoch1: "data/rDraconis_epoch1.png",
+      imgEpoch2: "data/rDraconis_epoch2.png",
+      imgDiff: "data/rDraconis_diff.png",
       isVariable: true,
       epoch1FluxMultiplier: 0.4, // Minimum pulsation phase
       epoch2FluxMultiplier: 2.4, // Maximum thermal pulsation phase
@@ -300,9 +315,9 @@
       }
     });
   });
-  realFITSImages.epoch1.src = ASTRONOMICAL_CATALOG.realSpherex.imgEpoch1;
-  realFITSImages.epoch2.src = ASTRONOMICAL_CATALOG.realSpherex.imgEpoch2;
-  realFITSImages.diff.src = ASTRONOMICAL_CATALOG.realSpherex.imgDiff;
+  realFITSImages.epoch1.src = ASTRONOMICAL_CATALOG.barnard.imgEpoch1;
+  realFITSImages.epoch2.src = ASTRONOMICAL_CATALOG.barnard.imgEpoch2;
+  realFITSImages.diff.src = ASTRONOMICAL_CATALOG.barnard.imgDiff;
 
   // Chart.js Reference
   let sedChartInstance = null;
@@ -1127,6 +1142,13 @@
     DOM.telFlags.className = `telemetry-v font-mono ${tile.flagColor || 'text-emerald'}`;
     DOM.sedFeaturePill.textContent = tile.sedFeature;
     DOM.validationReportText.textContent = tile.validation;
+
+    // Synchronize Real FITS image sources
+    if (tile.isRealFITS && tile.imgEpoch1) {
+      realFITSImages.epoch1.src = tile.imgEpoch1;
+      realFITSImages.epoch2.src = tile.imgEpoch2;
+      realFITSImages.diff.src = tile.imgDiff;
+    }
 
     // Refresh SED Chart and Viewport
     initOrUpdateSEDChart(tile);
