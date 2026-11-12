@@ -6,13 +6,8 @@
   <title>Team Prometheus — The Hunt for Planet X | SPHEREx</title>
   <meta name="description" content="An Awwwards-caliber scroll-driven cinematic experience. Descend to the Moon, open the discovery terminal, and hunt for Planet X across 102 infrared bands.">
 
-  <style>
-    html,body{background:#030508;margin:0}
-    html:not(.preloaded),html:not(.preloaded) body{overflow:hidden;height:100%}
-    #preloader{position:fixed;inset:0;z-index:9000;background:#030508;display:flex;align-items:center;justify-content:center}
-    html:not(.preloaded) #scroller,html:not(.preloaded) #seq-canvas,html:not(.preloaded) .nav,html:not(.preloaded) .hud,html:not(.preloaded) #layman-modal{visibility:hidden;opacity:0;pointer-events:none}
-  </style>
-  <link rel="preload" as="image" href="frames_loader/frame_001.jpg">
+  <style>html,body{background:#030508;color:#fff;margin:0}</style>
+  <link rel="preload" as="image" href="frames_v2/frame_001.jpg">
   <link rel="stylesheet" href="landing.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,49 +17,6 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
 <body>
-
-  <!-- ============================================================ -->
-  <!-- PRELOADER (3D Rocket Assembly & Blastoff 240fps Canvas)      -->
-  <!-- ============================================================ -->
-  <div id="preloader" class="preloader">
-    <canvas id="loader-canvas" class="loader-canvas"></canvas>
-    <div class="loader-vignette"></div>
-
-    <!-- Top Mission Telemetry Bar -->
-    <div class="pre-hud-top">
-      <div class="pre-brand">
-        <span class="pre-dot"></span>
-        <span class="pre-label">TEAM PROMETHEUS &bull; SPHEREx MISSION</span>
-      </div>
-      <div class="pre-mission-chips">
-        <span class="pre-chip"><span class="chip-k">STATUS</span><b id="pre-stage-chip" class="chip-v">ASSEMBLING</b></span>
-        <span class="pre-chip"><span class="chip-k">ORBIT</span><b class="chip-v">LEO 700KM POLAR</b></span>
-        <span class="pre-chip"><span class="chip-k">FPS</span><b class="chip-v chip-cyan">240 FPS+ BLEND</b></span>
-      </div>
-      <button id="pre-skip" class="pre-skip-btn" type="button" title="Skip Launch [ESC]">
-        <span>SKIP LAUNCH</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-
-    <!-- Bottom Mission Dock -->
-    <div class="pre-bottom-dock">
-      <div class="pre-status-line">
-        <div class="pre-status-badge">
-          <span class="badge-pulse"></span>
-          <span id="pre-stage-text">STAGE 1: SYSTEM INITIATION &amp; SCHEMATIC EXPANSION</span>
-        </div>
-        <div class="pre-fps-badge">240Hz SUB-FRAME LERP</div>
-      </div>
-      <div class="pre-track"><div id="pre-fill" class="pre-fill"></div></div>
-      <div class="pre-row">
-        <span id="pre-hint" class="pre-hint">DOWNLOADING DEEP SPACE TELEMETRY &bull; 120 MISSION FRAMES</span>
-        <div class="pre-pct-wrap">
-          <span id="pre-pct" class="pre-pct">0</span><span class="pre-pct-unit">%</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- ============================================================ -->
   <!-- CUSTOM CURSOR                                                 -->
@@ -80,7 +32,7 @@
   <!-- ============================================================ -->
   <!-- FIXED NAV                                                     -->
   <!-- ============================================================ -->
-  <header id="nav" class="nav">
+  <header id="nav" class="nav visible">
     <div class="nav-left">
       <span class="nav-dot"></span>
       <span class="nav-brand"> TEAM PROMETHEUS</span>
@@ -102,7 +54,7 @@
   <!-- ============================================================ -->
   <!-- FIXED TELEMETRY HUD                                           -->
   <!-- ============================================================ -->
-  <div id="hud" class="hud">
+  <div id="hud" class="hud visible">
     <div class="hud-g"><span class="hud-l">ALT</span><span id="h-alt" class="hud-v v-cyan">384,400 KM</span></div>
     <div class="hud-g"><span class="hud-l">VEL</span><span id="h-vel" class="hud-v v-amber">11.2 KM/S</span></div>
     <div class="hud-g"><span class="hud-l">PHASE</span><span id="h-phase" class="hud-v v-green">ORBITAL ENTRY</span></div>

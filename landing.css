@@ -45,6 +45,7 @@ img,video,canvas{display:block}
 
 /* ── PRELOADER (3D ROCKET ASSEMBLY & LAUNCH) ────────────────── */
 .preloader{
+  display:none!important;
   position:fixed;inset:0;z-index:9000;
   background:#030508;
   display:flex;align-items:center;justify-content:center;
@@ -1102,69 +1103,113 @@ body::after{
     margin: 16px 0 20px;
   }
   .rocket-craft-group {
-    flex-direction: column !important;
-    white-space: normal !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    flex-direction: column;
+    flex-wrap: wrap;
+    white-space: normal;
+    width: 100%;
+    max-width: 100%;
   }
   .banner-tether-cables {
-    display: none !important;
+    display: none;
   }
   .rocket-sprite {
-    width: 140px !important;
-    height: 55px !important;
-    margin: 0 auto 12px !important;
+    width: 140px;
+    height: 55px;
+    margin: 0 auto 12px;
   }
   .banner-body {
-    border-radius: 16px !important;
-    border-right: 1.5px solid rgba(255, 255, 255, .38) !important;
-    padding: 10px 14px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+    border-radius: 16px;
+    border-right: 1.5px solid rgba(255, 255, 255, .38);
+    padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .banner-links {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    font-size: 11px !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
   }
   .nav-chip {
-    display: none !important;
+    display: none;
   }
   .nav-brand {
-    font-size: 12px !important;
+    font-size: 12px;
   }
   .nav-cta {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
+    padding: 6px 10px;
+    font-size: 11px;
   }
   .nav {
-    padding: 0 14px !important;
+    padding: 0 14px;
+  }
+  .hero-sub {
+    font-size: clamp(13px, 3.8vw, 16px);
+    line-height: 1.5;
+    max-width: 100%;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+  .hero-actions .btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+  #cur {
+    display: none;
+  }
+  #cur-ring {
+    display: none;
+  }
+  body {
+    cursor: auto;
   }
 }
 
 @media (max-width: 480px) {
   .hero-line-1 {
-    font-size: clamp(26px, 7.5vw, 36px) !important;
-    letter-spacing: -0.02em !important;
+    font-size: clamp(24px, 7vw, 36px);
+    letter-spacing: -0.02em;
   }
   .hero-line-2 {
-    font-size: clamp(28px, 8.5vw, 40px) !important;
-    letter-spacing: -0.02em !important;
+    font-size: clamp(26px, 8vw, 40px);
+    letter-spacing: -0.02em;
   }
   .hero-meta {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 8px 12px !important;
-    font-size: 8.5px !important;
-    padding: 6px 14px !important;
-    width: 100% !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 12px;
+    font-size: 8.5px;
+    padding: 6px 14px;
+    width: 100%;
   }
 }
 
-@media (max-width: 768px), (pointer: coarse), (hover: none) {
-  #cur, #cur-ring {
-    display: none !important;
+@media (hover: none) {
+  #cur {
+    display: none;
+  }
+  #cur-ring {
+    display: none;
+  }
+  body {
+    cursor: auto;
   }
 }
+
+@media (pointer: coarse) {
+  #cur {
+    display: none;
+  }
+  #cur-ring {
+    display: none;
+  }
+  body {
+    cursor: auto;
+  }
+}
+
 

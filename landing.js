@@ -14,15 +14,6 @@ const BG = '#030508';
 
 /* ── DOM REFS ──────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
-const preloader   = $('preloader');
-const preFill     = $('pre-fill');
-const prePct      = $('pre-pct');
-const loaderCanvas = $('loader-canvas');
-const loaderCtx   = loaderCanvas ? loaderCanvas.getContext('2d') : null;
-const preStageChip = $('pre-stage-chip');
-const preStageText = $('pre-stage-text');
-const preHint     = $('pre-hint');
-const preSkipBtn  = $('pre-skip');
 const canvas      = $('seq-canvas');
 const ctx         = canvas.getContext('2d');
 const nav         = $('nav');
@@ -65,372 +56,44 @@ let audioCtx = null;
 let audioOn = false;
 let droneNode = null;
 
-/* ── 3D ROCKET ASSEMBLY & LAUNCH PRELOADER ENGINE (240fps) ──── */
-const LOADER_TOTAL_FRAMES = 240;
-const LOADER_FRAME_PATH = i => `frames_loader/frame_${String(i).padStart(3, '0')}.jpg`;
-let loaderFrames = [];
-let loaderDisplayFrame = 0;
-let loaderTargetFrame = 0;
-let loaderProgress = 0;
-let loaderFinished = false;
-let preloaderExited = false;
-let loaderRafId = null;
-let loaderStartTime = null;
-const LOADER_TOTAL_DURATION = 6800; // ms: total cinematic curve (slow assembly + fast blastoff)
+/* ── DEEP SPACE STORY PRELOADER & INITIALIZATION ──────────── */
+function startPreloading() {
+  document.documentElement.classList.add('preloaded');
+  ready = true;
+  if (nav) nav.classList.add('visible');
+  if (hud) hud.classList.add('visible');
 
-function getCinematicRocketProgress(elapsed) {
-  if (elapsed >= LOADER_TOTAL_DURATION) return 1.0;
-  const t = Math.min(Math.max(elapsed / LOADER_TOTAL_DURATION, 0), 1);
-  // Multi-stage cinematic curve:
-  // Phase 1 (0 -> 0.60): Slow & majestic 3D exploded schematic exploration (0% to 68%)
-  // Phase 2 (0.60 -> 0.80): Reassembly & fueling locks (68% to 85%)
-  // Phase 3 (0.80 -> 1.00): FAST explosive liftoff & blastoff (85% to 100%!)
-  let rawRatio;
-  if (t < 0.60) {
-    const subT = t / 0.60;
-    const ease = 0.5 - 0.5 * Math.cos(subT * Math.PI);
-    rawRatio = ease * 0.68;
-  } else if (t < 0.80) {
-    const subT = (t - 0.60) / 0.20;
-    rawRatio = 0.68 + subT * 0.17;
-  } else {
-    // FAST blastoff launch acceleration
-    const subT = (t - 0.80) / 0.20;
-    const accel = Math.pow(subT, 1.8);
-    rawRatio = 0.85 + accel * 0.15;
-  }
-
-  // Initial 4% visual kick: eliminate 0% flat spot/dead-zone stall so progress bar & rocket move immediately
-  const INITIAL_KICK = 0.04;
-  return Math.min(1.0, Math.max(INITIAL_KICK, INITIAL_KICK + rawRatio * (1 - INITIAL_KICK)));
-}
-
-/* ── PROGRESSIVE FRAME LOADER QUEUE (Non-blocking decode & windowing) ── */
-const LOADER_PRIORITY_FRAMES = 24;  // Priority batch loaded immediately for instant animation kick
-const LOADER_WINDOW_AHEAD = 30;     // Sliding lookahead window ahead of current playback frame
-const MAX_CONCURRENT_LOADS = 6;     // Concurrency limit to prevent network congestion
-const loaderFrameStatus = new Uint8Array(LOADER_TOTAL_FRAMES); // 0: unrequested, 1: loading, 2: loaded, 3: failed
-let activeLoaderRequests = 0;
-
-function pumpLoaderQueue() {
-  if (preloaderExited || loaderFinished || !loaderFrames) return;
-
-  // Window calculation: always ensure at least LOADER_PRIORITY_FRAMES are in queue,
-  // then slide ahead based on loaderDisplayFrame position
-  const maxTargetIndex = Math.min(
-    LOADER_TOTAL_FRAMES - 1,
-    Math.max(LOADER_PRIORITY_FRAMES - 1, Math.floor(loaderDisplayFrame) + LOADER_WINDOW_AHEAD)
-  );
-
-  while (activeLoaderRequests < MAX_CONCURRENT_LOADS) {
-    let nextIdx = -1;
-    for (let i = 0; i <= maxTargetIndex; i++) {
-      if (loaderFrameStatus[i] === 0) {
-        nextIdx = i;
-        break;
-      }
-    }
-
-    if (nextIdx === -1) break; // All frames in current window requested
-
-    loaderFrameStatus[nextIdx] = 1;
-    activeLoaderRequests++;
-
-    const img = new Image();
-    img.src = LOADER_FRAME_PATH(nextIdx + 1);
-
-    const onDone = (success) => {
-      activeLoaderRequests--;
-      loaderFrameStatus[nextIdx] = success ? 2 : 3;
-      if (success && loaderFrames) {
-        loaderFrames[nextIdx] = img;
-      }
-      pumpLoaderQueue();
-    };
-
-    // Non-blocking asynchronous decode
-    if (typeof img.decode === 'function') {
-      img.decode()
-        .then(() => onDone(true))
-        .catch(() => {
-          // If image already finished or errored before decode rejected, onerror will never fire again
-          if (img.complete) {
-            onDone(img.naturalWidth > 0);
-          } else {
-            img.onload = () => onDone(true);
-            img.onerror = () => onDone(false);
-          }
-        });
-    } else {
-      img.onload = () => onDone(true);
-      img.onerror = () => onDone(false);
-    }
-  }
-}
-
-function getBestLoaderFrame(idx) {
-  if (!loaderFrames) return null;
-  if (loaderFrames[idx] && loaderFrames[idx].complete && loaderFrames[idx].naturalWidth) {
-    return loaderFrames[idx];
-  }
-  // Look backwards for closest decoded frame
-  for (let i = idx - 1; i >= 0; i--) {
-    if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
-      return loaderFrames[i];
-    }
-  }
-  // Look forwards if first frames are still decoding
-  for (let i = idx + 1; i < LOADER_TOTAL_FRAMES; i++) {
-    if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
-      return loaderFrames[i];
-    }
-  }
-  return null;
-}
-
-function sizeLoaderCanvas() {
-  if (!loaderCanvas || !loaderCtx) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  loaderCanvas.width = window.innerWidth * dpr;
-  loaderCanvas.height = window.innerHeight * dpr;
-  loaderCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function drawLoaderFrame(img, alpha) {
-  if (!loaderCtx || !img) return;
-  const cw = window.innerWidth;
-  const ch = window.innerHeight;
-  const iw = img.naturalWidth || 1280;
-  const ih = img.naturalHeight || 720;
-  const scale = Math.max(cw / iw, ch / ih);
-  const dw = iw * scale;
-  const dh = ih * scale;
-  const dx = (cw - dw) * 0.5;
-  const dy = (ch - dh) * 0.5;
-
-  loaderCtx.globalAlpha = Math.max(0, Math.min(1, alpha));
-  loaderCtx.drawImage(img, dx, dy, dw, dh);
-}
-
-function playLiftoffRumble() {
-  try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    if (!audioCtx) audioCtx = new AudioContextClass();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const t = audioCtx.currentTime;
-    // Low sub-bass oscillation (50Hz down to 28Hz)
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(54, t);
-    osc.frequency.exponentialRampToValueAtTime(26, t + 1.2);
-
-    // Noise buffer for exhaust plume roar
-    const bufSize = Math.floor(audioCtx.sampleRate * 1.4);
-    const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-    const data = noiseBuf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * 0.4;
-    }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = noiseBuf;
-
-    const bqf = audioCtx.createBiquadFilter();
-    bqf.type = 'lowpass';
-    bqf.frequency.setValueAtTime(260, t);
-    bqf.frequency.linearRampToValueAtTime(700, t + 0.7);
-
-    const noiseG = audioCtx.createGain();
-    noiseG.gain.setValueAtTime(0.08, t);
-    noiseG.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
-
-    g.gain.setValueAtTime(0.12, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
-
-    osc.connect(g);
-    g.connect(audioCtx.destination);
-    noise.connect(bqf);
-    bqf.connect(noiseG);
-    noiseG.connect(audioCtx.destination);
-
-    osc.start(t);
-    noise.start(t);
-    osc.stop(t + 1.4);
-    noise.stop(t + 1.4);
-  } catch(e) {
-    // Graceful silence if browser blocks autoplay audio
-  }
-}
-
-function finishPreloader() {
-  if (preloaderExited) return;
-  preloaderExited = true;
-  loaderFinished = true;
-  ready = true; // Guarantee main canvas sequence activates immediately
-
-  if (loaderRafId) {
-    cancelAnimationFrame(loaderRafId);
-    loaderRafId = null;
-  }
-
-  playLiftoffRumble();
-
-  // Preload main deep space story frames now that preloader has completed
   preloadStoryFrames();
 
-  // Force first frame of deep space story so hero is instantly visible
-  try {
-    if (typeof drawFrame === 'function') drawFrame(0);
-  } catch(e) {}
-
-  if (preloader) {
-    document.documentElement.classList.add('preloaded');
-    preloader.style.transformOrigin = 'center 85%';
-    const finalizeReveal = () => {
-      preloader.classList.add('done');
-      preloader.style.display = 'none'; // Guarantee preloader is fully gone
-      loaderFrames = null; // Release 240 loader frame bitmaps to free memory
-      if (nav) nav.classList.add('visible');
-      if (hud) hud.classList.add('visible');
-      if (window.gsap) {
-        initGSAP();
-        if (window.ScrollTrigger) ScrollTrigger.refresh();
-      }
-    };
-    if (window.gsap) {
-      gsap.to(preloader, {
-        opacity: 0,
-        scale: 1.08,
-        filter: 'brightness(1.8) blur(8px)',
-        duration: 0.65,
-        ease: 'power3.inOut',
-        onComplete: finalizeReveal
-      });
-    } else {
-      finalizeReveal();
-    }
-  } else {
-    document.documentElement.classList.add('preloaded');
-    if (window.gsap) initGSAP();
+  if (window.gsap) {
+    initGSAP();
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
   }
-}
-
-function renderLoader(timestamp) {
-  if (preloaderExited) return;
-
-  if (!loaderStartTime) loaderStartTime = timestamp;
-  const elapsed = timestamp - loaderStartTime;
-
-  const realRatio = TOTAL_FRAMES > 0 ? (loaded / TOTAL_FRAMES) : 1;
-  const targetRatio = getCinematicRocketProgress(elapsed);
-
-  loaderProgress = targetRatio;
-
-  const pct = Math.round(loaderProgress * 100);
-  if (preFill) preFill.style.width = pct + '%';
-  if (prePct) prePct.textContent = pct;
-
-  // Dynamic Telemetry Status
-  if (pct < 25) {
-    if (preStageChip) preStageChip.textContent = 'ASSEMBLING';
-    if (preStageText) preStageText.textContent = 'STAGE 1: SYSTEM INITIATING & SCHEMATIC EXPANSION';
-    if (preHint) preHint.textContent = `DOWNLOADING DEEP SPACE TELEMETRY • ${loaded}/${TOTAL_FRAMES} MISSION FRAMES`;
-  } else if (pct < 65) {
-    if (preStageChip) preStageChip.textContent = 'CO-ALIGNING';
-    if (preStageText) preStageText.textContent = 'STAGE 2: 3D EXPLODED SCHEMATIC • CO-ALIGNMENT NOMINAL';
-    if (preHint) preHint.textContent = 'ANALYZING CRYOGENIC LOX/RP-1 CORE STAGE RATIOS';
-  } else if (pct < 88) {
-    if (preStageChip) preStageChip.textContent = 'FUELED';
-    if (preStageText) preStageText.textContent = 'STAGE 3: REASSEMBLY COMPLETE • CRYOGENIC FUELING 100%';
-    if (preHint) preHint.textContent = 'PAYLOAD FAIRING SEALED • SPHEREx IR POLAR MOUNT READY';
-  } else if (pct < 99) {
-    if (preStageChip) preStageChip.textContent = 'IGNITION';
-    if (preStageText) preStageText.textContent = 'STAGE 4: TERMINAL COUNTDOWN • MAIN ENGINES ARMED';
-    if (preHint) preHint.textContent = 'PRESSURE NOMINAL • ALL SYSTEMS GO FOR LEO INSERTION';
-  } else {
-    if (preStageChip) {
-      preStageChip.textContent = 'LIFTOFF!';
-      preStageChip.className = 'chip-v chip-cyan';
-    }
-    if (preStageText) preStageText.textContent = 'STAGE 5: T-0 LIFTOFF • SPHEREx MISSION LAUNCH SUCCESSFUL';
-    if (preHint) preHint.textContent = 'MISSION CLEARANCE CONFIRMED • ENTERING PROMETHEUS ORBIT';
-  }
-
-  // 240fps sub-frame lerp: slow & graceful during assembly, fast & punchy during liftoff!
-  loaderTargetFrame = loaderProgress * (LOADER_TOTAL_FRAMES - 1);
-  const lerpRate = loaderDisplayFrame < 185 ? 0.085 : 0.24;
-  loaderDisplayFrame += (loaderTargetFrame - loaderDisplayFrame) * lerpRate;
-
-  // Pump progressive windowed queue ahead of playback
-  pumpLoaderQueue();
-
-  if (loaderCanvas && loaderCtx && loaderFrames && loaderFrames.length > 0) {
-    const cw = window.innerWidth;
-    const ch = window.innerHeight;
-
-    const baseIdx = Math.floor(loaderDisplayFrame);
-    const nextIdx = Math.min(baseIdx + 1, LOADER_TOTAL_FRAMES - 1);
-    const subAlpha = loaderDisplayFrame - baseIdx;
-
-    let imgA = getBestLoaderFrame(baseIdx);
-    let imgB = (loaderFrames && loaderFrames[nextIdx] && loaderFrames[nextIdx].complete && loaderFrames[nextIdx].naturalWidth)
-      ? loaderFrames[nextIdx]
-      : null;
-
-    if (imgA) {
-      loaderCtx.clearRect(0, 0, cw, ch);
-      drawLoaderFrame(imgA, 1.0);
-      if (subAlpha > 0.01 && imgB && imgB !== imgA) {
-        drawLoaderFrame(imgB, subAlpha);
-      }
-    }
-
-    // Micro camera shake during blastoff (frames 205+)
-    if (loaderDisplayFrame > 205) {
-      const shakeAmt = ((loaderDisplayFrame - 205) / 35) * 4.5;
-      const sx = (Math.random() - 0.5) * shakeAmt;
-      const sy = (Math.random() - 0.5) * shakeAmt;
-      loaderCanvas.style.transform = `translate(${sx}px, ${sy}px) scale(1.01)`;
-    }
-  }
-
-  // Trigger launch into website as soon as the rocket ascends (Frame 230+) or time completes
-  if (loaderDisplayFrame >= 230 || elapsed >= LOADER_TOTAL_DURATION) {
-    finishPreloader();
-    return;
-  }
-
-  loaderRafId = requestAnimationFrame(renderLoader);
-}
-
-function startPreloading() {
-  sizeLoaderCanvas();
-  // Initialize loaderFrames array
-  loaderFrames = new Array(LOADER_TOTAL_FRAMES);
-
-  // Pump initial 24 priority frames immediately with async non-blocking decode
-  pumpLoaderQueue();
-
-  // Start 240fps RAF loop immediately
-  loaderRafId = requestAnimationFrame(renderLoader);
-
-  // Note: Story frames (frames_v2/) are deferred to finishPreloader() so loader frames get 100% bandwidth
 }
 
 function preloadStoryFrames() {
   if (frames.length > 0) return; // Prevent duplicate invocation
-  for (let i = 1; i <= TOTAL_FRAMES; i++) {
+
+  // Load first frame with immediate priority to draw hero background instantly
+  const firstImg = new Image();
+  firstImg.src = FRAME_PATH(1);
+  const onFirstLoad = () => {
+    ready = true;
+    try { drawFrame(0); } catch(e) {}
+  };
+  firstImg.onload = onFirstLoad;
+  if (typeof firstImg.decode === 'function') {
+    firstImg.decode().then(onFirstLoad).catch(onFirstLoad);
+  }
+  frames[0] = firstImg;
+
+  // Stream in the remaining deep space frames asynchronously
+  for (let i = 2; i <= TOTAL_FRAMES; i++) {
     const img = new Image();
     img.src = FRAME_PATH(i);
     img.onload = img.onerror = () => {
       loaded++;
-      if (loaded >= 1) {
-        ready = true;
-        try { drawFrame(displayFrame || 0); } catch(e) {}
-      }
-      if (loaded >= TOTAL_FRAMES) {
+      if (loaded >= TOTAL_FRAMES - 1) {
         ready = true;
       }
     };
@@ -438,25 +101,13 @@ function preloadStoryFrames() {
   }
 }
 
-/* ── SKIP / ESC HANDLERS ────────────────────────────────────── */
-if (preSkipBtn) {
-  preSkipBtn.addEventListener('click', () => {
-    finishPreloader();
-  });
-}
-window.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !preloaderExited) {
-    finishPreloader();
-  }
-});
-
 /* ── CANVAS SIZING ─────────────────────────────────────────── */
 function sizeCanvas() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  sizeLoaderCanvas();
+  try { drawFrame(displayFrame || 0); } catch(e) {}
 }
 window.addEventListener('resize', sizeCanvas);
 sizeCanvas();
