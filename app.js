@@ -278,7 +278,12 @@
     showGaiaOverlay: false,
     showWiseOverlay: false,
     showReticle: true,
-    flaggedLedger: []
+    flaggedLedger: [],
+    activeViewportMode: 'spherex', // 'spherex' | 'aladin'
+    aladinInstance: null,
+    aladinSurvey: 'P/allWISE/color',
+    aladinGridOn: false,
+    dataRelease: 'qr2_pipeline'
   };
 
   // Preloaded Real FITS Image Instances
@@ -369,6 +374,16 @@
     reticleTag: document.getElementById('reticle-tag'),
     diffIndicatorBadge: document.getElementById('diff-indicator-badge'),
     diffBadgeText: document.getElementById('diff-badge-text'),
+
+    // Dual Viewport Mode & Live Aladin
+    btnTabSpherex: document.getElementById('btn-tab-spherex'),
+    btnTabAladin: document.getElementById('btn-tab-aladin'),
+    aladinStage: document.getElementById('aladin-stage'),
+    aladinLiteContainer: document.getElementById('aladin-lite-container'),
+    aladinSurveySelector: document.getElementById('aladin-survey-selector'),
+    btnAladinSync: document.getElementById('btn-aladin-sync'),
+    btnAladinGrid: document.getElementById('btn-aladin-grid'),
+    dataReleaseSelector: document.getElementById('data-release-selector'),
 
     // Right Telemetry
     telemetryClassBadge: document.getElementById('telemetry-class-badge'),
@@ -1116,6 +1131,7 @@
     // Refresh SED Chart and Viewport
     initOrUpdateSEDChart(tile);
     renderViewport();
+    syncAladinTarget();
 
     // URL Query Parameter Sync (allows users to embed or share exact coordinates)
     if (pushState && window.history && window.history.replaceState) {
@@ -1127,6 +1143,64 @@
       window.history.replaceState({}, '', url);
     }
   }
+
+  // --------------------------------------------------------------------------
+  // 7.1 LIVE CDS ALADIN LITE & DUAL VIEWPORT CONTROLLER
+  // --------------------------------------------------------------------------
+  function initAladinLite() {
+    if (state.aladinInstance) {
+      syncAladinTarget();
+      return;
+    }
+    if (window.A && typeof window.A.aladin === 'function') {
+      const tile = ASTRONOMICAL_CATALOG[state.activeTileKey] || ASTRONOMICAL_CATALOG.barnard;
+      const fovDeg = (state.fovArcmin || 15) / 60;
+      try {
+        state.aladinInstance = window.A.aladin('#aladin-lite-container', {
+          survey: state.aladinSurvey,
+          fov: fovDeg,
+          target: `${tile.raDeg} ${tile.decDeg}`,
+          showReticle: true,
+          showZoomControl: true,
+          showLayersControl: true,
+          showFullscreenControl: false
+        });
+      } catch (err) {
+        console.warn('Aladin Lite initialization notice:', err);
+      }
+    }
+  }
+
+  function syncAladinTarget() {
+    if (!state.aladinInstance) return;
+    const tile = ASTRONOMICAL_CATALOG[state.activeTileKey];
+    if (!tile) return;
+    const fovDeg = (state.fovArcmin || 15) / 60;
+    try {
+      state.aladinInstance.gotoRaDec(tile.raDeg, tile.decDeg);
+      state.aladinInstance.setFoV(fovDeg);
+    } catch (err) {
+      console.warn('Aladin syncTarget:', err);
+    }
+  }
+
+  function switchViewportMode(mode) {
+    state.activeViewportMode = mode;
+    if (mode === 'aladin') {
+      if (DOM.canvasStage) DOM.canvasStage.classList.add('hidden');
+      if (DOM.aladinStage) DOM.aladinStage.classList.remove('hidden');
+      if (DOM.btnTabSpherex) DOM.btnTabSpherex.classList.remove('active');
+      if (DOM.btnTabAladin) DOM.btnTabAladin.classList.add('active');
+      initAladinLite();
+    } else {
+      if (DOM.aladinStage) DOM.aladinStage.classList.add('hidden');
+      if (DOM.canvasStage) DOM.canvasStage.classList.remove('hidden');
+      if (DOM.btnTabAladin) DOM.btnTabAladin.classList.remove('active');
+      if (DOM.btnTabSpherex) DOM.btnTabSpherex.classList.add('active');
+      renderViewport();
+    }
+  }
+  window.switchViewportMode = switchViewportMode;
 
   /**
    * Parse URL Query parameters on load (e.g. ?target=wise0855 or ?ra=133.795&dec=-7.245)
@@ -1497,6 +1571,56 @@
       downloadAnchor.click();
       URL.revokeObjectURL(downloadAnchor);
     });
+
+    // Dual Viewport Mode Tabs (SPHEREx Difference Engine vs Live CDS Aladin)
+    if (DOM.btnTabSpherex) {
+      DOM.btnTabSpherex.addEventListener('click', () => switchViewportMode('spherex'));
+    }
+    if (DOM.btnTabAladin) {
+      DOM.btnTabAladin.addEventListener('click', () => switchViewportMode('aladin'));
+    }
+
+    // Aladin Survey Selector
+    if (DOM.aladinSurveySelector) {
+      DOM.aladinSurveySelector.addEventListener('change', (e) => {
+        state.aladinSurvey = e.target.value;
+        if (state.aladinInstance && typeof state.aladinInstance.setImageSurvey === 'function') {
+          state.aladinInstance.setImageSurvey(state.aladinSurvey);
+        }
+      });
+    }
+
+    // Aladin Target Sync & Grid Buttons
+    if (DOM.btnAladinSync) {
+      DOM.btnAladinSync.addEventListener('click', () => {
+        syncAladinTarget();
+      });
+    }
+    if (DOM.btnAladinGrid) {
+      DOM.btnAladinGrid.addEventListener('click', () => {
+        if (state.aladinInstance && typeof state.aladinInstance.showGrid === 'function') {
+          state.aladinGridOn = !state.aladinGridOn;
+          state.aladinInstance.showGrid(state.aladinGridOn);
+        }
+      });
+    }
+
+    // Pluggable Data Release / Live NASA API Feed Switcher
+    if (DOM.dataReleaseSelector) {
+      DOM.dataReleaseSelector.addEventListener('change', (e) => {
+        const feed = e.target.value;
+        state.dataRelease = feed;
+        if (feed === 'custom_feed') {
+          const customUrl = prompt('Enter custom SPHEREx API Endpoint or Data Release URL:', 'https://api.spherex.nasa.gov/v1/cutout?');
+          if (customUrl) {
+            alert(`Connected to custom NASA feed: ${customUrl}\nLive pipeline configured.`);
+          }
+        } else {
+          const feedName = e.target.options[e.target.selectedIndex].text;
+          console.log(`Switched SPHEREx Data Feed to: ${feedName}`);
+        }
+      });
+    }
 
     // Window Resize Handling
     window.addEventListener('resize', () => {

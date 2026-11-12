@@ -17,6 +17,9 @@
   <!-- Chart.js CDN for High-Performance 102-Band SED Graphing -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
+  <!-- CDS Aladin Lite v3 (Strasbourg Astronomical Data Center) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js"></script>
+  
   <!-- Application Stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -63,6 +66,17 @@
 
     <!-- Header Actions -->
     <div class="header-right">
+      <!-- Pluggable Data Feed Selector -->
+      <div class="data-feed-badge font-mono">
+        <i data-lucide="database" class="inline-icon text-cyan"></i>
+        <select id="data-release-selector" class="form-select-header" title="Select SPHEREx Data Release or Live NASA API Feed">
+          <option value="qr2_pipeline">SPHEREx QR2 (Pipeline 2026)</option>
+          <option value="allwise_survey">NASA allWISE / CatWISE2020</option>
+          <option value="gaia_dr3">Gaia DR3 Astrometry</option>
+          <option value="custom_feed">+ Custom NASA API Feed / URL...</option>
+        </select>
+      </div>
+
       <button id="btn-3d-story" class="btn btn-secondary" onclick="window.location.href='index.html'" title="Return to Landing Page">
         <i data-lucide="sparkles"></i>
         <span>Home</span>
@@ -377,6 +391,19 @@
     <!-- ================================================================= -->
     <main class="viewport-center">
       
+      <!-- Viewport Dual-Mode Switcher: SPHEREx Difference Engine vs Live CDS Aladin Survey -->
+      <div class="viewport-mode-tabs font-mono">
+        <button id="btn-tab-spherex" class="v-tab-btn active" onclick="switchViewportMode('spherex')">
+          <i data-lucide="layers"></i>
+          <span>SPHEREx Multi-Epoch Difference Engine</span>
+        </button>
+        <button id="btn-tab-aladin" class="v-tab-btn" onclick="switchViewportMode('aladin')">
+          <i data-lucide="globe"></i>
+          <span>Live CDS Aladin All-Sky Survey</span>
+          <span class="v-tab-pill">REAL TILES</span>
+        </button>
+      </div>
+
       <!-- Top Image Viewport Coordinates & Status Bar -->
       <div class="viewport-hud font-mono">
         <div class="hud-cluster">
@@ -415,6 +442,32 @@
         <div id="diff-indicator-badge" class="diff-badge font-mono hidden">
           <i data-lucide="diff" class="diff-badge-icon"></i>
           <span id="diff-badge-text">PIXEL SUBTRACTION: ΔI = (EPOCH 2 − EPOCH 1)</span>
+        </div>
+      </div>
+
+      <!-- Live CDS Aladin Lite Viewport (Strasbourg Astronomical Data Center) -->
+      <div id="aladin-stage" class="aladin-stage hidden">
+        <div id="aladin-lite-container" class="aladin-lite-container"></div>
+        <div class="aladin-hud-bar font-mono">
+          <div class="aladin-hud-group">
+            <span class="aladin-hud-label text-cyan">SURVEY:</span>
+            <select id="aladin-survey-selector" class="aladin-survey-select">
+              <option value="P/allWISE/color">NASA allWISE (Color IR - W1/W2/W3/W4)</option>
+              <option value="P/DSS2/color">DSS2 All-Sky (Color Optical)</option>
+              <option value="P/2MASS/color">2MASS All-Sky (Near-IR J/H/Ks)</option>
+              <option value="CDS/P/Gaia/EDR3/color">Gaia EDR3 Density All-Sky</option>
+            </select>
+          </div>
+          <div class="aladin-hud-group">
+            <button id="btn-aladin-sync" class="btn btn-xs" title="Center Aladin at active target coordinates">
+              <i data-lucide="crosshair"></i>
+              <span>Sync Target Coords</span>
+            </button>
+            <button id="btn-aladin-grid" class="btn btn-xs" title="Toggle Coordinate Grid Overlay">
+              <i data-lucide="grid"></i>
+              <span>Grid</span>
+            </button>
+          </div>
         </div>
       </div>
 
