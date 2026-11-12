@@ -17,8 +17,32 @@
   <!-- Chart.js CDN for High-Performance 102-Band SED Graphing -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <!-- CDS Aladin Lite v3 (Strasbourg Astronomical Data Center) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js"></script>
+  <!-- CDS Aladin Lite v3 (Strasbourg Astronomical Data Center) ES Module Loader -->
+  <script type="module">
+    try {
+      const mod = await import('https://cdn.jsdelivr.net/npm/aladin-lite@3.8.2/dist/aladin.js');
+      window.A = mod.default || mod;
+      console.log('✅ CDS Aladin Lite v3 module loaded');
+      if (window.A && window.A.init && typeof window.A.init.then === 'function') {
+        window.A.init.then(() => {
+          window.aladinReady = true;
+          console.log('✅ CDS Aladin Lite v3 WebGL engine initialized');
+          window.dispatchEvent(new CustomEvent('aladin-ready'));
+        }).catch(err => {
+          console.warn('Aladin WebGL engine notice:', err);
+          window.aladinReady = false;
+          window.dispatchEvent(new CustomEvent('aladin-ready'));
+        });
+      } else {
+        window.aladinReady = true;
+        window.dispatchEvent(new CustomEvent('aladin-ready'));
+      }
+    } catch (err) {
+      console.warn('Aladin module import notice:', err);
+      window.aladinReady = false;
+      window.dispatchEvent(new CustomEvent('aladin-ready'));
+    }
+  </script>
   
   <!-- Application Stylesheet -->
   <link rel="stylesheet" href="styles.css">

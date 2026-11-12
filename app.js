@@ -1170,14 +1170,21 @@
   // 7.1 LIVE CDS ALADIN LITE & DUAL VIEWPORT CONTROLLER
   // --------------------------------------------------------------------------
   function initAladinLite() {
-    if (state.aladinInstance) {
+    const tile = ASTRONOMICAL_CATALOG[state.activeTileKey] || ASTRONOMICAL_CATALOG.wise0855;
+    const fovDeg = (state.fovArcmin || 15) / 60;
+    const container = document.getElementById('aladin-lite-container');
+    if (!container) return;
+
+    // If native instance already exists, simply sync target & survey
+    if (state.aladinInstance && typeof state.aladinInstance.gotoRaDec === 'function') {
       syncAladinTarget();
       return;
     }
-    if (window.A && typeof window.A.aladin === 'function') {
-      const tile = ASTRONOMICAL_CATALOG[state.activeTileKey] || ASTRONOMICAL_CATALOG.barnard;
-      const fovDeg = (state.fovArcmin || 15) / 60;
+
+    // Attempt Native Aladin Lite v3 WebGL initialization if window.A is ready
+    if (window.A && window.aladinReady && typeof window.A.aladin === 'function') {
       try {
+        container.innerHTML = ''; // clear any fallback
         state.aladinInstance = window.A.aladin('#aladin-lite-container', {
           survey: state.aladinSurvey,
           fov: fovDeg,
@@ -1187,22 +1194,62 @@
           showLayersControl: true,
           showFullscreenControl: false
         });
+        console.log('✅ Native Aladin Lite instance created successfully');
+        return;
       } catch (err) {
-        console.warn('Aladin Lite initialization notice:', err);
+        console.warn('Native Aladin WebGL instance failed, activating live CDS interactive embed fallback:', err);
       }
     }
+
+    // High-Reliability CDS Interactive Embed Fallback:
+    // Renders the official Strasbourg CDS Aladin interactive viewer with NASA allWISE / 2MASS / DSS2
+    renderAladinEmbedFallback(tile, fovDeg);
+  }
+
+  function renderAladinEmbedFallback(tile, fovDeg) {
+    const container = document.getElementById('aladin-lite-container');
+    if (!container) return;
+    const targetStr = encodeURIComponent(`${tile.raDeg.toFixed(5)} ${tile.decDeg.toFixed(5)}`);
+    const survey = encodeURIComponent(state.aladinSurvey);
+    const embedUrl = `https://aladin.cds.unistra.fr/AladinLite/?target=${targetStr}&fov=${fovDeg}&survey=${survey}`;
+
+    container.innerHTML = `
+      <div style="position:relative;width:100%;height:100%;background:#030508;">
+        <iframe 
+          id="aladin-live-iframe"
+          src="${embedUrl}" 
+          style="width:100%;height:100%;border:0;border-radius:8px;"
+          title="Live CDS Aladin All-Sky Survey"
+          allowfullscreen>
+        </iframe>
+        <div style="position:absolute;top:10px;left:10px;background:rgba(3,5,8,0.85);backdrop-filter:blur(8px);border:1px solid rgba(0,229,255,0.3);border-radius:6px;padding:4px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#00e5ff;pointer-events:none;z-index:10;display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-block;width:7px;height:7px;background:#10b981;border-radius:50%;box-shadow:0 0 6px #10b981;"></span>
+          <span>CDS STRASBOURG LIVE TILE FEED [${state.aladinSurvey}]</span>
+        </div>
+      </div>
+    `;
   }
 
   function syncAladinTarget() {
-    if (!state.aladinInstance) return;
     const tile = ASTRONOMICAL_CATALOG[state.activeTileKey];
     if (!tile) return;
     const fovDeg = (state.fovArcmin || 15) / 60;
-    try {
-      state.aladinInstance.gotoRaDec(tile.raDeg, tile.decDeg);
-      state.aladinInstance.setFoV(fovDeg);
-    } catch (err) {
-      console.warn('Aladin syncTarget:', err);
+
+    if (state.aladinInstance && typeof state.aladinInstance.gotoRaDec === 'function') {
+      try {
+        state.aladinInstance.gotoRaDec(tile.raDeg, tile.decDeg);
+        state.aladinInstance.setFoV(fovDeg);
+        return;
+      } catch (err) {
+        console.warn('Aladin gotoRaDec error:', err);
+      }
+    }
+
+    const iframe = document.getElementById('aladin-live-iframe');
+    if (iframe) {
+      const targetStr = encodeURIComponent(`${tile.raDeg.toFixed(5)} ${tile.decDeg.toFixed(5)}`);
+      const survey = encodeURIComponent(state.aladinSurvey);
+      iframe.src = `https://aladin.cds.unistra.fr/AladinLite/?target=${targetStr}&fov=${fovDeg}&survey=${survey}`;
     }
   }
 
@@ -1213,7 +1260,9 @@
       if (DOM.aladinStage) DOM.aladinStage.classList.remove('hidden');
       if (DOM.btnTabSpherex) DOM.btnTabSpherex.classList.remove('active');
       if (DOM.btnTabAladin) DOM.btnTabAladin.classList.add('active');
-      initAladinLite();
+      requestAnimationFrame(() => {
+        initAladinLite();
+      });
     } else {
       if (DOM.aladinStage) DOM.aladinStage.classList.add('hidden');
       if (DOM.canvasStage) DOM.canvasStage.classList.remove('hidden');
@@ -1223,6 +1272,12 @@
     }
   }
   window.switchViewportMode = switchViewportMode;
+
+  window.addEventListener('aladin-ready', () => {
+    if (state.activeViewportMode === 'aladin') {
+      initAladinLite();
+    }
+  });
 
   /**
    * Parse URL Query parameters on load (e.g. ?target=wise0855 or ?ra=133.795&dec=-7.245)
@@ -1608,6 +1663,8 @@
         state.aladinSurvey = e.target.value;
         if (state.aladinInstance && typeof state.aladinInstance.setImageSurvey === 'function') {
           state.aladinInstance.setImageSurvey(state.aladinSurvey);
+        } else {
+          syncAladinTarget();
         }
       });
     }
