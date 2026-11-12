@@ -266,7 +266,7 @@ img,video,canvas{display:block}
 }
 .act-left .card{max-width:540px}
 .act-right{display:flex;justify-content:flex-end}
-.act-right .card{max-width:540px}
+.act-right .card{max-width:560px}
 .act-center{text-align:center;display:flex;flex-direction:column;align-items:center}
 .act-center-wide{text-align:center}
 
@@ -446,16 +446,23 @@ img,video,canvas{display:block}
 }
 .title-lg{
   font-family:'Syne',sans-serif;
-  font-size:clamp(26px,3.2vw,44px);
+  font-size:clamp(24px,3.0vw,40px);
   font-weight:800;
-  letter-spacing:-.03em;
-  line-height:1.12;
+  letter-spacing:-.025em;
+  line-height:1.14;
   background:linear-gradient(180deg,#ffffff 25%,rgba(255,255,255,.78) 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
   filter:drop-shadow(0 4px 16px rgba(0,0,0,.75));
   margin-bottom:16px;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+.team-title-lg{
+  font-size:clamp(22px,2.5vw,36px) !important;
+  letter-spacing:-.015em !important;
+  white-space:nowrap;
 }
 .title-md{
   font-family:'Syne',sans-serif;
@@ -849,10 +856,30 @@ img,video,canvas{display:block}
 .chal-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:32px;align-items:start;text-align:left}
 .chal-vid{
   position:relative;border-radius:14px;overflow:hidden;
-  border:1px solid rgba(255,255,255,.06);
+  border:1px solid rgba(0,229,255,.2);
   aspect-ratio:16/9;
+  background:#030508;
+  box-shadow:0 12px 35px rgba(0,0,0,.7);
 }
-.chal-video{width:100%;height:100%;object-fit:cover}
+.chal-video{width:100%;height:100%;object-fit:cover;display:block}
+.chal-radar-sweep{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,229,255,.16) 0%,rgba(0,229,255,0) 60%);
+  animation:radarScan 3.5s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes radarScan{
+  0%{transform:translateY(-80%);opacity:.2}
+  100%{transform:translateY(80%);opacity:.7}
+}
+.chal-vid-caption{
+  position:absolute;bottom:8px;left:10px;right:10px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;
+  color:rgba(255,255,255,.85);background:rgba(3,5,8,.8);
+  backdrop-filter:blur(8px);padding:5px 10px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.1);pointer-events:none;
+}
 .chal-bench{display:flex;flex-direction:column;gap:8px}
 .bench-item{
   padding:12px 16px;border-radius:10px;
