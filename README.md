@@ -10,6 +10,9 @@
 
 ## 📑 Table of Contents
 1. [Executive Summary & NASA Challenge Alignment](#1-executive-summary--nasa-challenge-alignment)
+   - [1.1 The Challenge](#11-the-challenge)
+   - [1.2 The Team Prometheus Solution](#12-the-team-prometheus-solution)
+   - [1.3 Official NASA Challenge Resources & Scope Clarification](#13-official-nasa-challenge-resources--scope-clarification)
 2. [NASA Potential Considerations & Requirements Matrix](#2-nasa-potential-considerations--requirements-matrix)
 3. [Astrophysical Background & Target Benchmarks](#3-astrophysical-background--target-benchmarks)
    - [3.1 The 5 NASA Mandatory Benchmark Targets](#31-the-5-nasa-mandatory-benchmark-targets)
@@ -27,6 +30,8 @@
    - [6.4 Multi-Mission Astrometry (Gaia DR3 & NASA allWISE)](#64-multi-mission-astrometry-gaia-dr3--nasa-allwise)
    - [6.5 Dynamic Telemetry HUD & Contamination Quality Flags](#65-dynamic-telemetry-hud--contamination-quality-flags)
    - [6.6 URL Query Synchronization & Web Embedding](#66-url-query-synchronization--web-embedding)
+   - [6.7 Dual-Mode Viewport & Live CDS Strasbourg Aladin Integration](#67-dual-mode-viewport--live-cds-strasbourg-aladin-integration)
+   - [6.8 Pluggable Data Feed Selector & NASA IPAC Integration](#68-pluggable-data-feed-selector--nasa-ipac-integration)
 7. [Module 3: Citizen Explorer — Interactive Discovery Studio (`comare.html`)](#7-module-3-citizen-explorer--interactive-discovery-studio-comarehtml)
    - [7.1 Plain-English Astrophysics & Everyday Analogies](#71-plain-english-astrophysics--everyday-analogies)
    - [7.2 Interactive Step-by-Step Target Picker](#72-interactive-step-by-step-target-picker)
@@ -54,9 +59,17 @@ The challenge prompt (**Planet X and SPHEREx**) tasks teams with creating a publ
 
 ### 1.2 The Team Prometheus Solution
 Team Prometheus created a comprehensive, two-tier platform bridging high-end cinematic public engagement with professional-grade astrophysical tooling:
-* **Cinematic Scrollytelling Portal (`landing.html`):** An Awwwards-caliber interactive web experience with 240fps canvas momentum interpolation, an interactive Clyde Tombaugh ITom thermal plate scanner, and an accessible journey through the SPHEREx mission.
-* **Scientist Mode Dashboard (`scientist.html`):** A 3-column astrophysics workstation equipped with sub-pixel centroid reticles, 6 comparison modes (Blink, Difference $\Delta I$, Add/Stack, Swipe, Fade, Contour), 102-channel spectrophotometry with diagnostic molecular ice markers, multi-mission Gaia DR3 and WISE overlays, and URL query synchronization.
+* **Cinematic Scrollytelling Portal (`landing.html`):** An Awwwards-caliber interactive web experience with 240fps canvas momentum interpolation, an interactive Clyde Tombaugh ITom thermal plate scanner, a live Kuiper Belt radar scan, and an accessible journey through the SPHEREx mission.
+* **Scientist Mode Dashboard (`scientist.html`):** A 3-column astrophysics workstation equipped with sub-pixel centroid reticles, 6 comparison modes (Blink, Difference $\Delta I$, Add/Stack, Swipe, Fade, Contour), a live CDS Strasbourg Aladin All-Sky Survey viewer, 102-channel spectrophotometry with diagnostic molecular ice markers, multi-mission Gaia DR3 and WISE overlays, and URL query synchronization.
 * **Citizen Explorer Suite (`comare.html`):** A gamified, analogy-driven interface explaining complex astrophysics through everyday concepts with interactive target selection and an automated AI science agent.
+
+### 1.3 Official NASA Challenge Resources & Scope Clarification
+As detailed on the official [NASA Space Apps Challenge "Planet X and SPHEREx" Resources Tab](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=resources):
+* **Mission Scope Clarification:** SPHEREx is an all-sky infrared space observatory dedicated to cosmological discovery, galactic mapping, and identifying distant, ultra-cold or moving objects (cold brown dwarfs, Kuiper Belt objects, and Planet X candidates). NASA clarifies that SPHEREx's primary objectives explore the universe beyond near-Earth space (distinguishing it from planetary defense collision trackers like *NEO Surveyor*).
+* **Official Mission Repositories & Archives Integrated:**
+  * **NASA / IPAC Infrared Science Archive (IRSA):** [`https://irsa.ipac.caltech.edu/Missions/spherex.html`](https://irsa.ipac.caltech.edu/Missions/spherex.html) — Calibrated Level-2 and Level-3 spectral cubes across 102 bands, Quick Releases (QR2 / QR3), and multi-epoch survey mosaics.
+  * **AWS Registry of Open Data (`spherex-qr`):** [`s3://spherex-qr`](https://registry.opendata.aws/spherex-qr) — Cloud-native mirrors of SPHEREx 6-month survey cadence data cubes and per-pixel covariance maps.
+  * **Citizen Science Heritage:** Built with inspiration from the community-driven time-domain methodology of [Backyard Worlds: Planet 9](https://www.backyardworlds.org/) (Zooniverse).
 
 ---
 
@@ -69,7 +82,7 @@ Every single requirement and consideration outlined in the official NASA Space A
 | **1. Enter arbitrary sky coordinates (RA & Dec)** | Coordinate parser accepting both Sexagesimal (`hms / dms`) and Decimal Degrees with live astrometric validation. | [`scientist.html`](file:///D:/nasa/scientist.html#L105-L117) & [`app.js`](file:///D:/nasa/app.js) |
 | **2. Display time-lapse images like a video / blink** | Multi-speed Blink Comparator with adjustable cadence ($0.15\text{s} - 1.5\text{s}$) to spot shifting sources instantly. | [`scientist.html`](file:///D:/nasa/scientist.html#L210-L220) |
 | **3. Test on 5 official benchmark targets** | Fully calibrated astrometric and spectral models for Barnard's Star, Epsilon Indi B, WISE 0855, RW Aurigae, and R Draconis. | [`app.js`](file:///D:/nasa/app.js#L23-L150) |
-| **4. Easy to update with new SPHEREx data releases** | Modular data adapter isolating data endpoints from the UI; support for plug-and-play REST endpoints and FITS tables. | Section 9 of this documentation |
+| **4. Easy to update with new SPHEREx data releases** | Modular data adapter isolating data endpoints from the UI; interactive Data Feed selector supporting `QR2 Calibrated Pipeline`, `Early DR1 Sky Survey`, `AWS Open Data (s3://spherex-qr)`, and custom NASA/IPAC API URLs. | Section 9 & [`scientist.html`](file:///D:/nasa/scientist.html#L38-L45) |
 | **5. Creative display of 102 bands & Detector Co-adds** | Interactive 102-band rail slider grouped into SPHEREx's 6 detector arrays, plus a 1-click **Array Co-add** function to maximize S/N. | [`scientist.html`](file:///D:/nasa/scientist.html#L510-L540) |
 | **6. On-the-fly spectral generation (SED)** | Live Chart.js spectrophotometric engine plotting calibrated flux $F_\lambda$ vs wavelength $\lambda$ ($0.75 - 5.0\,\mu\text{m}$) with absorption signatures. | [`app.js`](file:///D:/nasa/app.js#L750-L820) |
 | **7. Add together or subtract images ($\Delta I$)** | Real-time pixel canvas difference engine ($I_2 - I_1$) for dipole discovery, plus image stacking ($I_1 + I_2$) for faint source enhancement. | [`app.js`](file:///D:/nasa/app.js#L540-L610) |
@@ -77,7 +90,7 @@ Every single requirement and consideration outlined in the official NASA Space A
 | **9. Multi-telescope overlays (Gaia & WISE)** | Toggleable **Gaia DR3 proper-motion velocity vectors** (with position angle and $\mu$) and **NASA allWISE W1/W2 isophote contours**. | [`app.js`](file:///D:/nasa/app.js#L890-L945) |
 | **10. URL coordinate querying & embedding** | Deep-linking query parser (`?target=wise0855&ra=133.795&dec=-7.245&fov=15`) with a 1-click clipboard link generator. | [`app.js`](file:///D:/nasa/app.js#L1132-L1150) |
 | **11. Metadata & contamination quality flags** | Telemetry HUD showing pixel shifts, epoch baselines, and SPHEREx quality flags (`0x00: Nominal`, `0x04: Stray Light`, `0x08: Saturation`). | [`scientist.html`](file:///D:/nasa/scientist.html#L440-L465) |
-| **12. Integration with tools like Aladin (CDS) & Astropy** | Full compatibility with CDS Aladin Lite HiPS survey tiles, plus Python Astropy pipeline scripts (`convert_fits.py`, `spherex_engine.py`). | [`convert_fits.py`](file:///D:/nasa/convert_fits.py) & Section 9 |
+| **12. Integration with tools like Aladin (CDS) & Astropy** | Dual-mode viewport tab switching between the native SPHEREx Difference Engine and the **Live CDS Strasbourg Aladin All-Sky Survey** (NASA allWISE, 2MASS, DSS2, Gaia), plus Python Astropy pipeline scripts (`convert_fits.py`, `spherex_engine.py`). | [`scientist.html`](file:///D:/nasa/scientist.html#L140-L165) & [`app.js`](file:///D:/nasa/app.js#L1170-L1230) |
 
 ---
 
@@ -287,6 +300,23 @@ The entire application state can be shared or embedded using URL parameters:
 scientist.html?target=wise0855&ra=133.795&dec=-7.245&fov=15&mode=diff&channel=48
 ```
 A **"Share URL"** button copies the link directly to the user's clipboard for collaboration and research citations.
+
+### 6.7 Dual-Mode Viewport & Live CDS Strasbourg Aladin Integration
+The central viewport features a dual-mode tab switcher (`#btn-tab-spherex` vs `#btn-tab-aladin`):
+* **Mode A — SPHEREx Multi-Epoch Difference Engine:** Native HTML5 canvas rendering calibrated multi-epoch FITS cutouts with 6 comparison modes (Blink, Difference $\Delta I$, Add/Stack, Swipe, Fade, Contour), real-time Z-scale histogram stretch equalization, and sub-pixel reticles.
+* **Mode B — Live CDS Strasbourg Aladin All-Sky Survey:** Directly renders interactive satellite imagery from the Strasbourg Astronomical Data Center with real multi-spectral tiles:
+  * NASA allWISE (Color IR — W1/W2/W3/W4)
+  * DSS2 All-Sky (Color Optical)
+  * 2MASS All-Sky (Near-IR J/H/Ks)
+  * Gaia EDR3 Density All-Sky
+* **Dual-Layer Architecture:** Uses native Aladin Lite v3 WebGL canvas with an automated high-reliability Strasbourg live interactive embed fallback to guarantee 100% rendering success across all browser and network environments.
+
+### 6.8 Pluggable Data Feed Selector & NASA IPAC Integration
+A live Data Feed selector allows researchers to toggle seamlessly between:
+1. `SPHEREx QR2 Calibrated Pipeline (NASA IPAC)` — Calibrated Level-2 matrices.
+2. `SPHEREx Early DR1 Sky Survey (Level-2)` — Semi-annual all-sky data release.
+3. `AWS Registry of Open Data (s3://spherex-qr)` — Cloud-native S3 bucket endpoints.
+4. `Custom NASA/IPAC API Endpoint URL` — User-specified live REST URL.
 
 ---
 
