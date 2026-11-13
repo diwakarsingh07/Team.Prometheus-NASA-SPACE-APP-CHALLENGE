@@ -1095,34 +1095,41 @@ function runTourLoop() {
 
   const doc = document.documentElement;
   const maxScroll = doc.scrollHeight - window.innerHeight;
+  const modesEl = $('act-modes');
   const landEl = $('act-land');
   const termEl = $('act-terminal');
   const revEl = $('act-reveal');
   const chalEl = $('act-challenge');
 
-  const landY = landEl ? landEl.offsetTop - 80 : maxScroll * 0.25;
-  const termY = termEl ? termEl.offsetTop - 60 : maxScroll * 0.45;
-  const revY = revEl ? revEl.offsetTop - 40 : maxScroll * 0.65;
+  const modesY = modesEl ? modesEl.offsetTop - 60 : maxScroll * 0.14;
+  const landY = landEl ? landEl.offsetTop - 80 : maxScroll * 0.30;
+  const termY = termEl ? termEl.offsetTop - 60 : maxScroll * 0.48;
+  const revY = revEl ? revEl.offsetTop - 40 : maxScroll * 0.68;
   const chalY = chalEl ? chalEl.offsetTop - 50 : maxScroll * 0.85;
 
   let targetY = 0;
   let caption = '';
 
-  if (progress < 0.12) {
+  if (progress < 0.10) {
     targetY = 0;
     caption = 'ACT I // ORBITAL ENTRY — 102 SPECTRAL CHANNELS (0.75 - 5.0 µm)';
-  } else if (progress < 0.38) {
-    const t = (progress - 0.12) / (0.38 - 0.12);
+  } else if (progress < 0.28) {
+    const t = (progress - 0.10) / (0.28 - 0.10);
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    targetY = ease * landY;
+    targetY = ease * modesY;
+    caption = 'MISSION GATEWAY // CITIZEN EXPLORER & SCIENTIST MODE DUAL ENGINES';
+  } else if (progress < 0.46) {
+    const t = (progress - 0.28) / (0.46 - 0.28);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    targetY = modesY + ease * (landY - modesY);
     caption = 'ACT II // LUNAR TOUCHDOWN — ZERO ATMOSPHERIC LOSS (182.5d BASELINE)';
-  } else if (progress < 0.55) {
-    const t = (progress - 0.38) / (0.55 - 0.38);
+  } else if (progress < 0.64) {
+    const t = (progress - 0.46) / (0.64 - 0.46);
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     targetY = landY + ease * (termY - landY);
     caption = 'ACT III // MISSION CONTROL — TEAM PROMETHEUS ARCHITECTURE';
-  } else if (progress < 0.78) {
-    const t = (progress - 0.55) / (0.78 - 0.55);
+  } else if (progress < 0.82) {
+    const t = (progress - 0.64) / (0.82 - 0.64);
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     targetY = termY + ease * (revY - termY);
     caption = 'ACT IV // TIME MACHINE — CLYDE TOMBAUGH 1930 vs SPHEREx 2026 DIPOLE';
@@ -1136,8 +1143,8 @@ function runTourLoop() {
         drawBrushMask(sweepX, sweepY, 110);
       }
     }
-  } else if (progress < 0.92) {
-    const t = (progress - 0.78) / (0.92 - 0.78);
+  } else if (progress < 0.94) {
+    const t = (progress - 0.82) / (0.94 - 0.82);
     const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     targetY = revY + ease * (chalY - revY);
     caption = 'ACT V // THE CHALLENGE — PLANET X & SPHEREx LEVEL-2 CALIBRATED MATRICES';

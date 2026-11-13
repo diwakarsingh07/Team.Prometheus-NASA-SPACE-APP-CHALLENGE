@@ -43,11 +43,12 @@
       <span class="nav-chip">NASA SPACE APPS CHALLENGE 2026</span>
     </div>
     <nav class="nav-links">
+      <a href="#act-modes" class="nav-hl"><i data-lucide="sparkles" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"></i>Discovery Modes</a>
       <a href="#sec-team">Team</a>
       <a href="#sec-how-built">How We Built</a>
       <a href="#act-challenge">Challenge</a>
       <a href="#sec-resources">Resources Used</a>
-      <a href="#sec-contact" class="nav-hl">Contact Us</a>
+      <a href="#sec-contact">Contact Us</a>
     </nav>
     <div class="nav-right">
       <button id="btn-tour" class="nav-tour-btn font-mono" title="Start Autonomous Cinematic Director Tour">
@@ -128,6 +129,8 @@
               </div>
               <div class="banner-body">
                 <div class="banner-links">
+                  <a href="#act-modes" class="r-link r-cta"><span class="r-num">★</span> CHOOSE MODE</a>
+                  <span class="r-dot">•</span>
                   <a href="#sec-team" class="r-link"><span class="r-num">01</span> TEAM</a>
                   <span class="r-dot">•</span>
                   <a href="#sec-how-built" class="r-link"><span class="r-num">02</span> HOW WE BUILT</a>
@@ -136,7 +139,7 @@
                   <span class="r-dot">•</span>
                   <a href="#sec-resources" class="r-link"><span class="r-num">04</span> RESOURCE USED</a>
                   <span class="r-dot">•</span>
-                  <a href="#sec-contact" class="r-link r-cta"><span class="r-num">05</span> CONTACT US</a>
+                  <a href="#sec-contact" class="r-link"><span class="r-num">05</span> CONTACT US</a>
                 </div>
               </div>
             </div>
@@ -238,6 +241,41 @@
       </div>
     </section>
 
+    <!-- ACT 6 — DUAL MODES GATEWAY ============================== -->
+    <section id="act-modes" class="act act-modes">
+      <div class="act-inner act-center-wide">
+        <div class="modes-head">
+          <div class="pill"><i data-lucide="sparkles"></i><span>DUAL-EXPERIENCE ARCHITECTURE</span></div>
+          <h2 class="title-xl">Choose Your<br><span class="grad">Discovery Path</span></h2>
+          <p class="body-lg">One engine. Two distinct experiences.</p>
+        </div>
+        <div class="modes-grid">
+          <div class="mode-card glass" onclick="window.location.href='comare.html'">
+            <div class="mc-top"><div class="mc-icon mc-icon-l"><i data-lucide="telescope"></i></div><span class="mc-tag">FOR EVERYONE</span></div>
+            <h3 class="title-md">Citizen Explorer</h3>
+            <p class="body-sm">Spot shifting asteroids, listen to infrared spectra, earn your NASA Citizen Discovery badge.</p>
+            <ul class="mc-list">
+              <li><i data-lucide="check"></i> Interactive Blink Comparator</li>
+              <li><i data-lucide="check"></i> Interactive Spectral Analysis</li>
+              <li><i data-lucide="check"></i> Easily understandable interface</li>
+            </ul>
+            <button class="btn btn-l" onclick="window.location.href='comare.html'">Enter Explorer Mode <i data-lucide="arrow-right"></i></button>
+          </div>
+          <div class="mode-card glass" onclick="window.location.href='scientist.html'">
+            <div class="mc-top"><div class="mc-icon mc-icon-s"><i data-lucide="activity"></i></div><span class="mc-tag">ASTROPHYSICS CONSOLE</span></div>
+            <h3 class="title-md">Scientist Mode</h3>
+            <p class="body-sm">Full 3-column dashboard. Load FITS, scrub 102 spectral channels, overlay Gaia DR3 proper motion.</p>
+            <ul class="mc-list">
+              <li><i data-lucide="check"></i> 6 Comparison Engines (Blink, Diff, RGB)</li>
+              <li><i data-lucide="check"></i> 102-Band SED Molecular Chart</li>
+              <li><i data-lucide="check"></i> JSON Discovery Dossier Export</li>
+            </ul>
+            <button class="btn btn-s" onclick="window.location.href='scientist.html'">Launch Console <i data-lucide="terminal"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ACT 2 — LUNAR TOUCHDOWN ================================ -->
     <section id="act-land" class="act act-land">
       <div class="act-inner act-left">
@@ -325,41 +363,6 @@
                 <div class="stat"><span class="stat-v v-green">1.2 "/yr</span><span class="stat-l">Parallax</span></div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ACT 6 — DUAL MODES GATEWAY ============================== -->
-    <section id="act-modes" class="act act-modes">
-      <div class="act-inner act-center-wide">
-        <div class="modes-head">
-          <div class="pill"><i data-lucide="sparkles"></i><span>DUAL-EXPERIENCE ARCHITECTURE</span></div>
-          <h2 class="title-xl">Choose Your<br><span class="grad">Discovery Path</span></h2>
-          <p class="body-lg">One engine. Two distinct experiences.</p>
-        </div>
-        <div class="modes-grid">
-          <div class="mode-card glass" onclick="window.location.href='comare.html'">
-            <div class="mc-top"><div class="mc-icon mc-icon-l"><i data-lucide="telescope"></i></div><span class="mc-tag">FOR EVERYONE</span></div>
-            <h3 class="title-md">Citizen Explorer</h3>
-            <p class="body-sm">Spot shifting asteroids, listen to infrared spectra, earn your NASA Citizen Discovery badge.</p>
-            <ul class="mc-list">
-              <li><i data-lucide="check"></i> Interactive Blink Comparator</li>
-              <li><i data-lucide="check"></i> Interactive Spectral Analysis</li>
-              <li><i data-lucide="check"></i> Easily understandable interface</li>
-            </ul>
-            <button class="btn btn-l" onclick="window.location.href='comare.html'">Enter Explorer Mode <i data-lucide="arrow-right"></i></button>
-          </div>
-          <div class="mode-card glass" onclick="window.location.href='scientist.html'">
-            <div class="mc-top"><div class="mc-icon mc-icon-s"><i data-lucide="activity"></i></div><span class="mc-tag">ASTROPHYSICS CONSOLE</span></div>
-            <h3 class="title-md">Scientist Mode</h3>
-            <p class="body-sm">Full 3-column dashboard. Load FITS, scrub 102 spectral channels, overlay Gaia DR3 proper motion.</p>
-            <ul class="mc-list">
-              <li><i data-lucide="check"></i> 6 Comparison Engines (Blink, Diff, RGB)</li>
-              <li><i data-lucide="check"></i> 102-Band SED Molecular Chart</li>
-              <li><i data-lucide="check"></i> JSON Discovery Dossier Export</li>
-            </ul>
-            <button class="btn btn-s">Launch Console <i data-lucide="terminal"></i></button>
           </div>
         </div>
       </div>
