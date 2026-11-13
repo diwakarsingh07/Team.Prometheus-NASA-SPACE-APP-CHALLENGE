@@ -101,17 +101,17 @@
               </div>
               <div class="banner-body">
                 <div class="banner-links">
-                  <a href="#act-modes" class="r-link r-cta"><span class="r-num">★</span> CHOOSE MODE</a>
+                  <a href="#sec-what-built" class="r-link"><span class="r-num">01</span> WHAT WE BUILT</a>
                   <span class="r-dot">•</span>
-                  <a href="#sec-team" class="r-link"><span class="r-num">01</span> TEAM</a>
-                  <span class="r-dot">•</span>
-                  <a href="#sec-how-built" class="r-link"><span class="r-num">02</span> HOW WE BUILT</a>
+                  <a href="#act-modes" class="r-link r-cta"><span class="r-num">02</span> THE CONSOLE</a>
                   <span class="r-dot">•</span>
                   <a href="#act-challenge" class="r-link"><span class="r-num">03</span> CHALLENGE</a>
                   <span class="r-dot">•</span>
-                  <a href="#sec-resources" class="r-link"><span class="r-num">04</span> RESOURCE USED</a>
+                  <a href="#sec-resources" class="r-link"><span class="r-num">04</span> RESOURCES</a>
                   <span class="r-dot">•</span>
-                  <a href="#sec-contact" class="r-link"><span class="r-num">05</span> CONTACT US</a>
+                  <a href="#sec-team" class="r-link"><span class="r-num">05</span> TEAM</a>
+                  <span class="r-dot">•</span>
+                  <a href="#sec-contact" class="r-link"><span class="r-num">06</span> CONTACT</a>
                 </div>
               </div>
             </div>
@@ -213,13 +213,56 @@
       </div>
     </section>
 
-    <!-- ACT 6 — DUAL MODES GATEWAY ============================== -->
+    <!-- ============================================================ -->
+    <!-- SECTION 1 — WHAT WE HAVE BUILT                               -->
+    <!-- ============================================================ -->
+    <section id="sec-what-built" class="act act-arch">
+      <div class="act-inner act-center-wide">
+        <div class="card glass glass-wide">
+          <div class="pill"><i data-lucide="cpu"></i><span>MISSION ARCHITECTURE // TEAM PROMETHEUS</span></div>
+          <h2 class="title-lg">What We Have Built</h2>
+          <p class="body-md">Engineered specifically for the NASA Space Apps Challenge 2026. A zero-cost, high-performance web architecture combining client-side astrophysics with 240fps+ scrollytelling.</p>
+          <div class="arch-grid">
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="sparkles"></i></div>
+              <h3 class="title-sm">1. Dual-Viewport Architecture</h3>
+              <p class="body-sm">Two purpose-built consoles on a unified data core: a gamified <strong>Citizen Explorer</strong> for public engagement and a 3-column <strong>Scientist Console</strong> for professional researchers.</p>
+              <span class="arch-tag">DUAL ENGINES</span>
+            </div>
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="binary"></i></div>
+              <h3 class="title-sm">2. 102-Band Hyperspectral Engine</h3>
+              <p class="body-sm">Calibrated SPHEREx Level-2 science matrices spanning 0.75–5.0 µm. Extracts continuous Spectral Energy Distributions (SED) to isolate methane (1.66 µm) and water-ice absorption dips.</p>
+              <span class="arch-tag">FITS PIPELINE</span>
+            </div>
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="scan"></i></div>
+              <h3 class="title-sm">3. Time Machine ITOM Shader</h3>
+              <p class="body-sm">Interactive dual-layer canvas overlaying Clyde Tombaugh's historical 1930 Lowell photographic discovery plates against 2026 SPHEREx infrared dipole scans with interactive thermal aperture.</p>
+              <span class="arch-tag">CANVAS SHADER</span>
+            </div>
+            <div class="arch-item">
+              <div class="arch-icon"><i data-lucide="award"></i></div>
+              <h3 class="title-sm">4. NASA Benchmark Verification</h3>
+              <p class="body-sm">Validated against 5 ground-truth targets: Barnard's Star (>10"/yr proper motion), WISE 0855 (coldest ~250K Y-dwarf), Epsilon Indi B (T1+T6 binary), and variable stars.</p>
+              <span class="arch-tag">BENCHMARK SUITE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2 — THE CONSOLE (THE HEART) & COMPLETE USAGE GUIDE    -->
+    <!-- ============================================================ -->
     <section id="act-modes" class="act act-modes">
       <div class="act-inner act-center-wide">
+        
+        <!-- The Dual Console Cards -->
         <div class="modes-head">
-          <div class="pill"><i data-lucide="sparkles"></i><span>DUAL-EXPERIENCE ARCHITECTURE</span></div>
+          <div class="pill"><i data-lucide="sparkles"></i><span>THE HEART OF PROJECT // DUAL-EXPERIENCE GATEWAY</span></div>
           <h2 class="title-xl">Choose Your<br><span class="grad">Discovery Path</span></h2>
-          <p class="body-lg">One engine. Two distinct experiences.</p>
+          <p class="body-lg">One engine. Two distinct experiences designed for distinct audiences.</p>
         </div>
         <div class="modes-grid">
           <div class="mode-card glass" onclick="window.location.href='comare.html'">
@@ -245,38 +288,81 @@
             <button class="btn btn-s" onclick="window.location.href='scientist.html'">Launch Console <i data-lucide="terminal"></i></button>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ACT 2 — LUNAR TOUCHDOWN ================================ -->
-    <section id="act-land" class="act act-land">
-      <div class="act-inner act-left">
-        <div class="card glass">
-          <div class="pill"><i data-lucide="map-pin"></i><span>ACT II // LUNAR TOUCHDOWN</span></div>
-          <h2 class="title-lg">Touchdown on the<br>Ancient Regolith</h2>
-          <p class="body-md">Zero atmospheric distortion. The lunar surface is the purest observational baseline in the solar system.</p>
-          <div class="stat-row">
-            <div class="stat"><span class="stat-v v-cyan">0.00%</span><span class="stat-l">Atm. Loss</span></div>
-            <div class="stat"><span class="stat-v v-amber">102</span><span class="stat-l">IR Bands</span></div>
-            <div class="stat"><span class="stat-v v-green">182.5 d</span><span class="stat-l">Baseline</span></div>
+        <!-- The Complete Guide: How to Use Which Console and for Whom -->
+        <div class="console-guide-wrap">
+          <div class="guide-head">
+            <div class="pill"><i data-lucide="book-open"></i><span>COMPREHENSIVE CONSOLE GUIDE</span></div>
+            <h3 class="title-lg">How to Use the Consoles — Audience & Workflows</h3>
+            <p class="body-md">Step-by-step operational workflows tailored for each console mode.</p>
+          </div>
+          <div class="guide-grid">
+            
+            <!-- Guide: Citizen Explorer -->
+            <div class="guide-card guide-card-citizen">
+              <div class="guide-target-box">
+                <strong>Intended Audience</strong>
+                Students, educators, astronomy hobbyists, citizen scientists, and general public seeking intuitive space exploration.
+              </div>
+              <div class="guide-steps-list">
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-citizen">1</span>
+                  <div class="guide-step-text">
+                    <strong>Blink Inspection Engine</strong>
+                    <p>Toggle multi-epoch survey frames. Fixed background stars remain static while moving solar system bodies (asteroids, KBOs, Planet X) noticeably shift position.</p>
+                  </div>
+                </div>
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-citizen">2</span>
+                  <div class="guide-step-text">
+                    <strong>Infrared Audio Sonification</strong>
+                    <p>Listen to 102 infrared wavelengths mapped to acoustic audio frequencies. Deep pitch troughs reveal cold planetary methane and water ice absorption bands.</p>
+                  </div>
+                </div>
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-citizen">3</span>
+                  <div class="guide-step-text">
+                    <strong>Discovery Badge Certification</strong>
+                    <p>Confirm the moving target coordinates, view simplified orbital trajectory data, and earn an official NASA Space Apps Citizen Discovery badge.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Guide: Scientist Console -->
+            <div class="guide-card guide-card-scientist">
+              <div class="guide-target-box">
+                <strong>Intended Audience</strong>
+                Professional astrophysicists, observational astronomers, planetary dynamicists, and university data researchers.
+              </div>
+              <div class="guide-steps-list">
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-scientist">1</span>
+                  <div class="guide-step-text">
+                    <strong>102-Band FITS Slicing</strong>
+                    <p>Ingest Level-2 calibrated FITS science cubes with WCS coordinates. Scrub across 102 discrete channels (0.75–5.0 µm) with custom stretch and color mapping.</p>
+                  </div>
+                </div>
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-scientist">2</span>
+                  <div class="guide-step-text">
+                    <strong>Gaia DR3 Astrometric Disambiguation</strong>
+                    <p>Cross-match coordinates with Gaia DR3 proper motion (&mu;&alpha;, &mu;&delta;) and parallax (&varpi;) vectors to eliminate high-velocity stellar foreground interlopers.</p>
+                  </div>
+                </div>
+                <div class="guide-step-row">
+                  <span class="guide-step-num num-scientist">3</span>
+                  <div class="guide-step-text">
+                    <strong>SED Fitting & Dossier Export</strong>
+                    <p>Compute &chi;&sup2; model fits against cold sub-stellar atmospheric grids (~40K–250K) and export cryptographically verifiable JSON discovery dossiers.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ACT 3 — TERMINAL OPENS ================================= -->
-    <section id="act-terminal" class="act act-terminal">
-      <div class="act-inner act-right">
-        <div class="card glass">
-          <div class="pill"><i data-lucide="terminal"></i><span>Challenge // 2026</span></div>
-          <h2 class="title-lg team-title-lg">TEAM<br>PROMETHEUS</h2>
-          <p class="body-md">We are making the mission easily understandable for everyone.</p>
-          <div class="stat-row">
-            <div class="stat"><span class="stat-v v-cyan">2.4 TB/yr</span><span class="stat-l">Data Rate</span></div>
-            <div class="stat"><span class="stat-v v-amber">0.75 – 5.0 µm</span><span class="stat-l">λ Range</span></div>
-            <div class="stat"><span class="stat-v v-green">> 1 Billion</span><span class="stat-l">Objects</span></div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -340,12 +426,16 @@
       </div>
     </section>
 
-    <!-- ACT 7 — NASA CHALLENGE ================================== -->
+    <!-- ============================================================ -->
+    <!-- SECTION 3 — THE CHALLENGE (PROFESSIONAL POINTS & DATA)       -->
+    <!-- ============================================================ -->
     <section id="act-challenge" class="act act-challenge">
       <div class="act-inner act-center-wide">
         <div class="card glass glass-wide">
-          <div class="pill"><i data-lucide="award"></i><span>NASA SPACE APPS CHALLENGE 2026</span></div>
-          <h2 class="title-lg">The Challenge:<br>Planet X & SPHEREx</h2>
+          <div class="pill"><i data-lucide="award"></i><span>NASA SPACE APPS CHALLENGE 2026 // SCIENTIFIC DOSSIER</span></div>
+          <h2 class="title-lg">The Challenge: Planet X & SPHEREx</h2>
+          <p class="body-md">Hunting for an elusive 5–10 Earth-mass planet in the outer solar system using NASA's Spectro-Photometer for the History of the Universe, Epoch of Reionization and Ices Explorer.</p>
+          
           <div class="chal-grid">
             <div class="chal-vid">
               <img src="planet_x_kuiper.jpg" alt="SPHEREx Deep Space Kuiper Belt Planet X Survey" class="chal-video">
@@ -358,75 +448,160 @@
             </div>
             <div class="chal-bench">
               <div class="bench-item bench-hl"><span class="pre-dot"></span><span class="bench-n">Real SPHEREx QR2 FITS Data</span><br><span class="bench-d">Level-2 calibrated science matrices</span></div>
-              <div class="bench-item"><span class="bench-n">Barnard's Star</span><span class="bench-d">10.37 "/yr proper motion</span></div>
-              <div class="bench-item"><span class="bench-n">WISE 0855-0714</span><span class="bench-d">Coldest Y-Dwarf (250K)</span></div>
+              <div class="bench-item"><span class="bench-n">Barnard's Star</span><span class="bench-d">10.37 "/yr proper motion control</span></div>
+              <div class="bench-item"><span class="bench-n">WISE 0855-0714</span><span class="bench-d">Coldest Y-Dwarf (~250K)</span></div>
               <div class="bench-item"><span class="bench-n">Epsilon Indi B</span><span class="bench-d">Binary brown dwarf (T1+T6)</span></div>
               <div class="bench-item"><span class="bench-n">RW Aurigae & R Draconis</span><span class="bench-d">Pulsating variable stars</span></div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- SECTION — HOW WE BUILT ================================= -->
-    <section id="sec-how-built" class="act act-arch">
-      <div class="act-inner act-center-wide">
-        <div class="card glass glass-wide">
-          <div class="pill"><i data-lucide="cpu"></i><span>HACKATHON ENGINEERING ARCHITECTURE</span></div>
-          <h2 class="title-lg">How We Built It</h2>
-          <p class="body-md">Engineered specifically for the NASA Space Apps Challenge 2026. A zero-cost, high-performance web architecture combining client-side astrophysics with 240fps+ scrollytelling.</p>
-          <div class="arch-grid">
-            <div class="arch-item">
-              <div class="arch-icon"><i data-lucide="layers"></i></div>
-              <h3 class="title-sm">1. Sub-Frame Scrolly Engine</h3>
-              <p class="body-sm">Custom HTML5 canvas rendering engine interpolating 120 AI-remastered frames with momentum spring lerping and continuous alpha blending at native monitor refresh rates.</p>
-              <span class="arch-tag">HYPER ENGINE</span>
-            </div>
-            <div class="arch-item">
-              <div class="arch-icon"><i data-lucide="binary"></i></div>
-              <h3 class="title-sm">2. 102-Band FITS Pipeline</h3>
-              <p class="body-sm">Level-2 calibrated science matrices mapped across 0.75–5.0 µm. Extracts Spectral Energy Distributions (SED) to detect methane (1.66 µm) and water ice absorption dips.</p>
-              <span class="arch-tag">FITS CALIBRATION</span>
-            </div>
-            <div class="arch-item">
-              <div class="arch-icon"><i data-lucide="sparkles"></i></div>
-              <h3 class="title-sm">3. Dual Discovery UX</h3>
-              <p class="body-sm">Two interfaces on one engine: a gamified Citizen Explorer with interactive spectral analysis and blink comparator, and a full scientific astrophysics research console.</p>
-              <span class="arch-tag">DUAL MODES</span>
+          <!-- Professional Points Breakdown -->
+          <div class="chal-structured">
+            <div class="chal-points-grid">
+              
+              <div class="chal-point-card">
+                <div class="chal-point-header">
+                  <div class="chal-point-icon"><i data-lucide="eye-off"></i></div>
+                  <strong>1. The Optical Detection Barrier</strong>
+                </div>
+                <div class="chal-point-body">
+                  Optical telescopes rely on reflected sunlight, which falls off with the fourth power of distance (<span class="chal-equation-pill">F &prop; 1/r<sup>4</sup></span>). At 500 AU, reflected sunlight is over 100 billion times fainter than at 1 AU, making optical discovery virtually impossible.
+                </div>
+              </div>
+
+              <div class="chal-point-card">
+                <div class="chal-point-header">
+                  <div class="chal-point-icon"><i data-lucide="flame"></i></div>
+                  <strong>2. The Thermal Infrared Signature</strong>
+                </div>
+                <div class="chal-point-body">
+                  Planet X does not shine by reflection, but by its own residual internal planetary heat. At <span class="chal-equation-pill">T &asymp; 40 K</span>, Planck's radiation law dictates that its blackbody emission peaks in the mid-to-far infrared (3.0–5.0 &micro;m), exactly within SPHEREx's spectral coverage.
+                </div>
+              </div>
+
+              <div class="chal-point-card">
+                <div class="chal-point-header">
+                  <div class="chal-point-icon"><i data-lucide="layers"></i></div>
+                  <strong>3. 102 Continuous Spectral Bands</strong>
+                </div>
+                <div class="chal-point-body">
+                  Unlike traditional single-broadband surveys, SPHEREx slices every point in the sky across 102 discrete channels (0.75–5.0 &micro;m). This enables unambiguous extraction of methane (1.66 &micro;m) and water-ice absorption dips to distinguish cold solar system bodies from distant red galaxies.
+                </div>
+              </div>
+
+              <div class="chal-point-card">
+                <div class="chal-point-header">
+                  <div class="chal-point-icon"><i data-lucide="clock"></i></div>
+                  <strong>4. All-Sky 6-Month Astrometric Baseline</strong>
+                </div>
+                <div class="chal-point-body">
+                  Conducting 4 full-sky surveys over 2 years provides an authentic 182.5-day baseline. This yields detectable annual parallax (<span class="chal-equation-pill">&pi; &asymp; 1.2&Prime;/yr</span>) against stationary stars, allowing precise computation of orbital inclination and semimajor axis.
+                </div>
+              </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </section>
 
-    <!-- SECTION — RESOURCES USED ================================ -->
+    <!-- ============================================================ -->
+    <!-- SECTION 4 — RESOURCES USED (POINTS FORM: IMAGES & TECHNICAL) -->
+    <!-- ============================================================ -->
     <section id="sec-resources" class="act act-resources">
       <div class="act-inner act-center-wide">
         <div class="card glass glass-wide">
-          <div class="pill"><i data-lucide="database"></i><span>DATASETS, APIS & ASSETS</span></div>
+          <div class="pill"><i data-lucide="database"></i><span>DATASETS, APIS & TECHNICAL ASSETS</span></div>
           <h2 class="title-lg">Resources Used</h2>
-          <p class="body-md">All data sources, scientific catalogs, tools, and models utilized throughout this hackathon project.</p>
-          <div class="res-grid">
-            <div class="res-card">
-              <div class="rc-head"><span class="pre-dot"></span><strong>NASA IPAC / IRSA</strong></div>
+          <p class="body-md">Scientific data sources, astronomical catalogs, official NASA documentation, and cloud infrastructure used throughout this project.</p>
+          
+          <div class="res-grid-tech">
+            
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="satellite" style="color:#00e5ff;"></i><strong>NASA IPAC / IRSA</strong></div>
+                <span class="res-badge">LEVEL-2 SCIENCE FITS</span>
+              </div>
               <p class="body-sm">SPHEREx Quick Release 2 all-sky spectral survey data and calibrated infrared imaging cubes.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Coverage:</strong> 102 continuous bands (0.75 – 5.0 &micro;m)</span></li>
+                <li><i data-lucide="check"></i><span><strong>Resolution:</strong> 6.2 arcsec/pixel with WCS astrometry</span></li>
+                <li><i data-lucide="check"></i><span><strong>Format:</strong> Multi-extension FITS data cubes</span></li>
+              </ul>
               <span class="res-src">science.nasa.gov</span>
             </div>
-            <div class="res-card">
-              <div class="rc-head"><span class="pre-dot"></span><strong>ESA Gaia DR3 Catalog</strong></div>
-              <p class="body-sm">High-precision proper motion vectors, stellar parallax baselines, and astrometric cross-matching.</p>
+
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="compass" style="color:#b388ff;"></i><strong>ESA Gaia DR3 Catalog</strong></div>
+                <span class="res-badge res-badge-purple">MICROARCSECOND ASTROMETRY</span>
+              </div>
+              <p class="body-sm">High-precision proper motion vectors and stellar parallax baselines to filter galactic foreground stars.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Sources:</strong> 1.806 billion stars with 5-parameter astrometry</span></li>
+                <li><i data-lucide="check"></i><span><strong>Precision:</strong> Sub-milliarcsecond proper motions (&mu;&alpha;, &mu;&delta;)</span></li>
+                <li><i data-lucide="check"></i><span><strong>Cross-Match:</strong> On-the-fly cone search within 10 arcseconds</span></li>
+              </ul>
               <span class="res-src">cosmos.esa.int</span>
             </div>
-            <div class="res-card">
-              <div class="rc-head"><span class="pre-dot"></span><strong>SPHEREx</strong></div>
-              <p class="body-sm">The SPHEREx mission will map the entire sky in near-infrared light to study the large-scale structure of the universe.</p>
-              <span class="res-src">spherex.com</span>
+
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="award" style="color:#ffb300;"></i><strong>NASA Space Apps Resources</strong></div>
+                <span class="res-badge res-badge-amber">OFFICIAL NASA SUITE</span>
+              </div>
+              <p class="body-sm">Official challenge guidance, SPHEREx mission instrument guides, and planetary clustering whitepapers.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Challenge:</strong> Planet X & SPHEREx Resource Suite</span></li>
+                <li><i data-lucide="check"></i><span><strong>Mission Scope:</strong> 6-month survey cadence & Kuiper limits</span></li>
+                <li><i data-lucide="check"></i><span><strong>Data Standards:</strong> NASA Open Science guidelines</span></li>
+              </ul>
+              <span class="res-src">spaceappschallenge.org</span>
             </div>
-            <div class="res-card">
-              <div class="rc-head"><span class="pre-dot"></span><strong>Lowell 1930 Archives</strong></div>
+
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="globe" style="color:#00e5ff;"></i><strong>CDS Strasbourg Aladin Lite v3</strong></div>
+                <span class="res-badge">WEBGL SKY SURVEY API</span>
+              </div>
+              <p class="body-sm">Progressive Hierarchical All-Sky Surveys (HiPS) engine for interactive client-side sky navigation.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Surveys:</strong> AllWISE, 2MASS, DSS2 optical & infrared</span></li>
+                <li><i data-lucide="check"></i><span><strong>Rendering:</strong> Hardware-accelerated WebGL tile streaming</span></li>
+                <li><i data-lucide="check"></i><span><strong>Integration:</strong> Native ES module + fallback embed</span></li>
+              </ul>
+              <span class="res-src">aladin.cds.unistra.fr</span>
+            </div>
+
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="archive" style="color:#b388ff;"></i><strong>Lowell 1930 Archives</strong></div>
+                <span class="res-badge res-badge-purple">HISTORICAL DISCOVERY PLATES</span>
+              </div>
               <p class="body-sm">Clyde Tombaugh's historical discovery photographic plates digitized for the interactive Time Machine shader.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Plates:</strong> 14x17 inch glass emulsion photographic negatives</span></li>
+                <li><i data-lucide="check"></i><span><strong>Optics:</strong> 13-inch Lawrence Lowell astrograph</span></li>
+                <li><i data-lucide="check"></i><span><strong>Shader:</strong> Interactive HTML5 dual-canvas comparative brush</span></li>
+              </ul>
               <span class="res-src">lowell.edu</span>
             </div>
+
+            <div class="res-tech-card">
+              <div class="res-card-top">
+                <div class="rc-head"><i data-lucide="cloud" style="color:#ffb300;"></i><strong>AWS Open Data Registry</strong></div>
+                <span class="res-badge res-badge-amber">CLOUD FITS REPOSITORY</span>
+              </div>
+              <p class="body-sm">Cloud-hosted astronomical datasets enabling low-latency, range-request FITS data streaming.</p>
+              <ul class="res-specs-list">
+                <li><i data-lucide="check"></i><span><strong>Protocol:</strong> HTTP Range request chunk streaming</span></li>
+                <li><i data-lucide="check"></i><span><strong>Latency:</strong> Zero-backend direct client-side parsing</span></li>
+                <li><i data-lucide="check"></i><span><strong>Throughput:</strong> High-bandwidth planetary matrix delivery</span></li>
+              </ul>
+              <span class="res-src">registry.opendata.aws</span>
+            </div>
+
           </div>
         </div>
       </div>
