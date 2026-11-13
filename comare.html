@@ -28,9 +28,14 @@
           <span class="step-indicator-pill">STEP 1 OF 2 · PICK YOUR SPACE TARGET</span>
         </div>
 
-        <a href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
-          <span>🔬</span> Use Scientist Mode
-        </a>
+        <div class="nav-right-group">
+          <button type="button" class="nav-btn nav-btn-quiz" onclick="openDiscoveryQuiz()" title="Test Your Knowledge & Earn NASA Citizen Discovery Certificate">
+            <span>🏆</span> Discovery Quiz &amp; Certificate
+          </button>
+          <a href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
+            <span>🔬</span> Use Scientist Mode
+          </a>
+        </div>
       </header>
 
       <div class="picker-hero">
@@ -83,9 +88,14 @@
           </div>
         </div>
 
-        <a id="scientist-mode-link" href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
-          <span>🔬</span> Use Scientist Mode
-        </a>
+        <div class="nav-right-group">
+          <button type="button" class="nav-btn nav-btn-quiz" onclick="openDiscoveryQuiz()" title="Test Your Knowledge & Earn NASA Citizen Discovery Certificate">
+            <span>🏆</span> Discovery Quiz &amp; Certificate
+          </button>
+          <a id="scientist-mode-link" href="scientist.html" class="nav-btn nav-btn-scientist" title="Switch to Full Astrophysics Scientist Console">
+            <span>🔬</span> Use Scientist Mode
+          </a>
+        </div>
       </header>
 
       <!-- 3-Column Wireframe Workspace:
@@ -1002,6 +1012,189 @@
         }
       } catch (_) {}
     });
+
+    // --- NASA Citizen Discovery Certification Quiz & Badge Engine ---
+    const quizData = [
+      {
+        question: "1. How does the Blink Comparator detect moving solar system targets like asteroids and Planet X?",
+        options: [
+          { text: "A) By zooming in with optical filters to reveal planetary rings", correct: false },
+          { text: "B) By rapidly alternating between observation epochs so moving bodies jump against static background stars", correct: true },
+          { text: "C) By calculating gravitational lensing around foreground brown dwarfs", correct: false }
+        ]
+      },
+      {
+        question: "2. Why does SPHEREx use 102 infrared channels instead of visible light to hunt for Planet X?",
+        options: [
+          { text: "A) Optical sunlight reflection drops off with the 4th power of distance (1/r⁴), whereas cold planets emit internal thermal infrared", correct: true },
+          { text: "B) Visible light is completely blocked by Earth's stratospheric ozone layer", correct: false },
+          { text: "C) Planet X emits continuous high-energy ultraviolet synchrotron radiation", correct: false }
+        ]
+      },
+      {
+        question: "3. What distinctive spectral signature in SPHEREx infrared data indicates cold planetary atmospheres?",
+        options: [
+          { text: "A) Sharp atomic emission spikes from ionized iron (Fe II)", correct: false },
+          { text: "B) Deep molecular absorption troughs from methane (CH₄ at 1.66 µm) and water ice", correct: true },
+          { text: "C) Unbroken flat continuum flux matching hot O-type stars", correct: false }
+        ]
+      }
+    ];
+
+    let userQuizAnswers = {};
+
+    function openDiscoveryQuiz() {
+      const modal = document.getElementById("discovery-quiz-modal");
+      if (!modal) return;
+      modal.classList.remove("hidden-view");
+      renderQuizQuestions();
+    }
+
+    function closeDiscoveryQuiz() {
+      const modal = document.getElementById("discovery-quiz-modal");
+      if (modal) modal.classList.add("hidden-view");
+    }
+
+    function renderQuizQuestions() {
+      const wrap = document.getElementById("quiz-questions-wrap");
+      const certWrap = document.getElementById("quiz-cert-wrap");
+      if (certWrap) certWrap.classList.add("hidden-view");
+      if (wrap) wrap.classList.remove("hidden-view");
+
+      wrap.innerHTML = quizData.map((q, qIdx) => `
+        <div class="quiz-q-card" id="quiz-card-${qIdx}">
+          <div class="quiz-q-text">${esc(q.question)}</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${q.options.map((opt, optIdx) => `
+              <button type="button" class="quiz-opt-btn" id="q-${qIdx}-opt-${optIdx}" onclick="handleQuizAnswer(${qIdx}, ${optIdx})">
+                ${esc(opt.text)}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `).join("") + `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <span id="quiz-status-msg" style="font-size:0.86rem; color:#94a3b8; font-family:var(--font-mono);">Answer all 3 questions to unlock certificate.</span>
+          <button type="button" class="nav-btn nav-btn-quiz" id="btn-submit-quiz" onclick="evaluateQuizAnswers()" style="opacity:0.5; pointer-events:none;">
+            <span>🎖️</span> Submit &amp; Verify Score
+          </button>
+        </div>
+      `;
+    }
+
+    function handleQuizAnswer(qIdx, optIdx) {
+      userQuizAnswers[qIdx] = optIdx;
+      // Highlight selected option visually
+      quizData[qIdx].options.forEach((_, idx) => {
+        const btn = document.getElementById(`q-${qIdx}-opt-${idx}`);
+        if (btn) {
+          btn.style.borderColor = idx === optIdx ? "var(--accent-cyan)" : "rgba(255,255,255,0.12)";
+          btn.style.background = idx === optIdx ? "rgba(0, 229, 255, 0.15)" : "rgba(255,255,255,0.05)";
+          btn.style.color = idx === optIdx ? "#ffffff" : "#cbd5e1";
+        }
+      });
+
+      // Enable submit button once all 3 questions answered
+      if (Object.keys(userQuizAnswers).length === quizData.length) {
+        const submitBtn = document.getElementById("btn-submit-quiz");
+        const statusMsg = document.getElementById("quiz-status-msg");
+        if (submitBtn) {
+          submitBtn.style.opacity = "1";
+          submitBtn.style.pointerEvents = "auto";
+        }
+        if (statusMsg) {
+          statusMsg.textContent = "All 3 answered! Click Submit & Verify.";
+          statusMsg.style.color = "var(--accent-cyan)";
+        }
+      }
+    }
+
+    function evaluateQuizAnswers() {
+      let score = 0;
+      quizData.forEach((q, qIdx) => {
+        const userChoice = userQuizAnswers[qIdx];
+        q.options.forEach((opt, optIdx) => {
+          const btn = document.getElementById(`q-${qIdx}-opt-${optIdx}`);
+          if (btn) {
+            btn.disabled = true;
+            if (opt.correct) {
+              btn.classList.add("correct");
+            } else if (userChoice === optIdx) {
+              btn.classList.add("wrong");
+            }
+          }
+        });
+        if (q.options[userChoice] && q.options[userChoice].correct) {
+          score++;
+        }
+      });
+
+      const wrap = document.getElementById("quiz-questions-wrap");
+      const certWrap = document.getElementById("quiz-cert-wrap");
+
+      if (score >= 2) {
+        setTimeout(() => {
+          if (wrap) wrap.classList.add("hidden-view");
+          if (certWrap) certWrap.classList.remove("hidden-view");
+          const dateStr = new Date().toISOString().slice(0, 10);
+          const randHex = Math.random().toString(16).substring(2, 6).toUpperCase();
+          const certDate = document.getElementById("cert-date-display");
+          const certId = document.getElementById("cert-id-display");
+          if (certDate) certDate.innerHTML = `<strong>DATE:</strong> ${dateStr}`;
+          if (certId) certId.innerHTML = `<strong>CERT ID:</strong> SPHEREx-PROMETHEUS-2026-${randHex}`;
+        }, 800);
+      } else {
+        const statusMsg = document.getElementById("quiz-status-msg");
+        if (statusMsg) {
+          statusMsg.innerHTML = `<span style="color:#ef4444;">Score: ${score}/3. Review the answers highlighted above, then <a href="javascript:void(0)" onclick="resetDiscoveryQuiz()" style="color:#f59e0b; text-decoration:underline;">click here to retake</a>.</span>`;
+        }
+      }
+    }
+
+    function resetDiscoveryQuiz() {
+      userQuizAnswers = {};
+      renderQuizQuestions();
+    }
+
+    function printDiscoveryCertificate() {
+      window.print();
+    }
   </script>
+
+  <!-- NASA Citizen Discovery Quiz & Certificate Modal -->
+  <div id="discovery-quiz-modal" class="quiz-modal-overlay hidden-view">
+    <div class="quiz-modal-box">
+      <div class="quiz-modal-header">
+        <div class="quiz-modal-title">
+          <span>🏆</span>
+          <span>NASA Citizen Discovery Certification</span>
+        </div>
+        <button type="button" class="quiz-close-btn" onclick="closeDiscoveryQuiz()" title="Close Modal">&times;</button>
+      </div>
+
+      <!-- Step A: Quiz Questions -->
+      <div id="quiz-questions-wrap" style="display:flex; flex-direction:column; gap:16px;"></div>
+
+      <!-- Step B: Certificate Card (Shown upon passing) -->
+      <div id="quiz-cert-wrap" class="hidden-view" style="display:flex; flex-direction:column; gap:16px;">
+        <div class="cert-card" id="printable-cert">
+          <div class="cert-badge-top">NASA SPACE APPS CHALLENGE 2026 // CITIZEN DISCOVERY</div>
+          <div class="cert-title">CITIZEN SCIENTIST DISCOVERY CERTIFICATE</div>
+          <p class="cert-body-text">This official certificate is proudly conferred upon</p>
+          <input type="text" id="cert-candidate-name" class="cert-name-input" value="Citizen Astronomer" placeholder="Enter Your Name">
+          <p class="cert-body-text">for successfully demonstrating proficiency in multi-epoch astronomical blinking, SPHEREx 102-band infrared spectroscopy, and planetary astrometry to isolate moving candidates in the outer Solar System.</p>
+          <div class="cert-footer-row">
+            <div><strong>VERIFIED BY:</strong> Team Prometheus / NASA Space Apps</div>
+            <div id="cert-date-display"><strong>DATE:</strong> 2026-11-13</div>
+            <div id="cert-id-display"><strong>CERT ID:</strong> SPHEREx-PROMETHEUS-2026-9842</div>
+          </div>
+        </div>
+        <div class="cert-actions">
+          <button type="button" class="cert-btn" onclick="printDiscoveryCertificate()"><span>🖨️</span> Print / Save Certificate (PDF)</button>
+          <button type="button" class="quiz-opt-btn" onclick="resetDiscoveryQuiz()" style="padding:10px 18px;"><span>🔄</span> Retake Quiz</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
