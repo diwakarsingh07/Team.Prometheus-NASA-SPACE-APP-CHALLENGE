@@ -20,12 +20,30 @@ ul{list-style:none}
 img,video,canvas{display:block}
 .hidden{display:none!important}
 
-/* ── CUSTOM CURSOR ─────────────────────────────────────────── */
+/* ── LENIS 120FPS SMOOTH SCROLL ACCELERATION ───────────────── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ── CUSTOM CURSOR (GPU COMPOSITED - ZERO REFLOW) ──────────── */
 .cur{
-  position:fixed;width:8px;height:8px;border-radius:50%;
+  position:fixed;top:0;left:0;width:8px;height:8px;border-radius:50%;
   background:#00e5ff;
   pointer-events:none;z-index:10000;
-  transform:translate(-50%,-50%);
+  transform:translate3d(-50%,-50%,0);
+  will-change:transform;
   mix-blend-mode:difference;
   opacity:0;
   transition:width .15s,height .15s,background .15s,opacity .2s;
@@ -33,10 +51,11 @@ img,video,canvas{display:block}
 .cur.active{opacity:1}
 .cur.hover{width:14px;height:14px;background:#ffb300}
 .cur-ring{
-  position:fixed;width:42px;height:42px;border-radius:50%;
+  position:fixed;top:0;left:0;width:42px;height:42px;border-radius:50%;
   border:1.5px solid rgba(0,229,255,.35);
   pointer-events:none;z-index:9999;
-  transform:translate(-50%,-50%);
+  transform:translate3d(-50%,-50%,0);
+  will-change:transform;
   opacity:0;
   transition:width .25s ease-out,height .25s ease-out,border-color .25s,opacity .2s;
 }

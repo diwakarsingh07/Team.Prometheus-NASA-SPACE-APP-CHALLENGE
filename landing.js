@@ -74,8 +74,56 @@ window.addEventListener('scroll', () => {
   }, 120);
 }, { passive: true });
 
+/* ── LENIS 120FPS SMOOTH SCROLL ENGINE ──────────────────────── */
+let lenis = null;
+function initLenis() {
+  if (typeof Lenis === 'undefined') return;
+  try {
+    lenis = new Lenis({
+      duration: 1.2,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.2,
+      infinite: false,
+    });
+
+    window.lenis = lenis;
+
+    lenis.on('scroll', () => {
+      isScrolling = true;
+      isDirty = true;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        isScrolling = false;
+      }, 120);
+      if (window.ScrollTrigger) {
+        ScrollTrigger.update();
+      }
+    });
+
+    if (window.gsap && window.gsap.ticker) {
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+      });
+      gsap.ticker.lagSmoothing(0);
+    } else {
+      function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      requestAnimationFrame(raf);
+    }
+  } catch (err) {
+    console.warn('Lenis smooth scroll initialization skipped:', err);
+  }
+}
+
 /* ── DEEP SPACE STORY PRELOADER & INITIALIZATION ──────────── */
 function startPreloading() {
+  initLenis();
   document.documentElement.classList.add('preloaded');
   ready = true;
   if (nav) nav.classList.add('visible');
@@ -192,7 +240,7 @@ function drawFrame(floatIdx) {
   }
   if (!imgA) return;
 
-  ctx.clearRect(0, 0, W, H);
+  // Single opaque fill pass (eliminates redundant clearRect CPU/GPU fill-rate thrashing)
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, W, H);
 
@@ -220,14 +268,14 @@ function drawFrame(floatIdx) {
 /* ── SCROLL → FRAME MAPPING ────────────────────────────────── */
 function getScrollProgress() {
   const doc = document.documentElement;
-  const scrollTop = window.pageYOffset || doc.scrollTop;
+  const scrollTop = lenis ? lenis.scroll : (window.pageYOffset || doc.scrollTop);
   const scrollHeight = doc.scrollHeight - doc.clientHeight;
   return scrollHeight > 0 ? Math.min(1, Math.max(0, scrollTop / scrollHeight)) : 0;
 }
 
 function getSequenceProgress() {
   const terminalEl = $('act-terminal');
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollTop = lenis ? lenis.scroll : (window.pageYOffset || document.documentElement.scrollTop);
   if (!terminalEl) return getScrollProgress();
   const terminalTrigger = terminalEl.offsetTop + terminalEl.offsetHeight * 0.5 - window.innerHeight * 0.5;
   return terminalTrigger > 0 ? Math.min(1, Math.max(0, scrollTop / terminalTrigger)) : 0;
@@ -390,7 +438,11 @@ function initGSAP() {
       e.preventDefault();
       const target = document.querySelector(link.getAttribute('href'));
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
+        if (lenis) {
+          lenis.scrollTo(target, { duration: 1.2 });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
         playTick();
       }
     });
@@ -435,10 +487,8 @@ function cursorTick() {
   cy += (my - cy) * 0.2;
   rx += (mx - rx) * 0.08;
   ry += (my - ry) * 0.08;
-  cur.style.left = cx + 'px';
-  cur.style.top = cy + 'px';
-  curRing.style.left = rx + 'px';
-  curRing.style.top = ry + 'px';
+  cur.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
+  curRing.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
   requestAnimationFrame(cursorTick);
 }
 requestAnimationFrame(cursorTick);
@@ -459,14 +509,21 @@ document.addEventListener('mouseout', e => {
   }
 });
 
-/* ── DUST PARTICLES ────────────────────────────────────────── */
+/* ── DUST PARTICLES (Optimized & Pauses When Hidden/Idle) ───── */
 (function initDust() {
   const dc = document.createElement('canvas');
   dc.id = 'dust-canvas';
+  dc.style.position = 'fixed';
+  dc.style.inset = '0';
+  dc.style.pointerEvents = 'none';
+  dc.style.zIndex = '1';
+  dc.style.transform = 'translateZ(0)';
+  dc.style.willChange = 'transform';
   document.body.appendChild(dc);
   const dctx = dc.getContext('2d');
   let particles = [];
-  const COUNT = 60;
+  const COUNT = 40;
+  let dustRunning = true;
 
   function sizeDust() {
     dc.width = window.innerWidth;
@@ -486,7 +543,13 @@ document.addEventListener('mouseout', e => {
     });
   }
 
+  document.addEventListener('visibilitychange', () => {
+    dustRunning = !document.hidden;
+    if (dustRunning) requestAnimationFrame(dustTick);
+  });
+
   function dustTick() {
+    if (!dustRunning) return;
     dctx.clearRect(0, 0, dc.width, dc.height);
     for (const p of particles) {
       p.x += p.dx;
@@ -940,7 +1003,11 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     e.preventDefault();
     const target = document.querySelector(link.getAttribute('href'));
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
+      if (lenis) {
+        lenis.scrollTo(target, { duration: 1.2 });
+      } else {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
       playTick();
     }
   });
@@ -1079,7 +1146,11 @@ function runTourLoop() {
     caption = 'DOCKING READY // ENTERING SPHEREx SCIENTIST CONSOLE (AUTO-TRANSITION)';
   }
 
-  window.scrollTo(0, targetY);
+  if (lenis) {
+    lenis.scrollTo(targetY, { immediate: true });
+  } else {
+    window.scrollTo(0, targetY);
+  }
   if (tourCaption) tourCaption.textContent = caption;
 
   if (progress < 1) {
