@@ -465,6 +465,89 @@ function initGSAP() {
       kuiperVis.style.transition = 'none';
     });
   }
+
+  // ── "What We Have Built" — GSAP Staggered Card Entrance ──
+  if (document.querySelector('.arch-grid')) {
+    gsap.from('.arch-item', {
+      opacity: 0,
+      y: 50,
+      scale: 0.94,
+      stagger: 0.12,
+      duration: 0.85,
+      ease: 'back.out(1.15)',
+      scrollTrigger: {
+        trigger: '.arch-grid',
+        start: 'top 82%',
+        toggleActions: 'play none none reverse',
+      }
+    });
+  }
+
+  // ── "The Challenge" Points — GSAP Staggered Entrance ──
+  if (document.querySelector('.chal-points-grid')) {
+    gsap.from('.chal-point-card', {
+      opacity: 0,
+      y: 45,
+      stagger: 0.12,
+      duration: 0.8,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: '.chal-points-grid',
+        start: 'top 85%',
+        toggleActions: 'play none none reverse',
+      }
+    });
+  }
+
+  // ── Dual Console Workflow Steps Stagger ──
+  if (document.querySelector('.guide-step-list')) {
+    gsap.from('.step-item', {
+      opacity: 0,
+      x: -20,
+      stagger: 0.08,
+      duration: 0.6,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: '.console-guide-container',
+        start: 'top 82%',
+        toggleActions: 'play none none reverse',
+      }
+    });
+  }
+
+  // ── Resources Used Tech Cards Stagger ──
+  if (document.querySelector('.res-grid-tech')) {
+    gsap.from('.res-tech-card', {
+      opacity: 0,
+      y: 50,
+      stagger: 0.14,
+      duration: 0.8,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: '.res-grid-tech',
+        start: 'top 82%',
+        toggleActions: 'play none none reverse',
+      }
+    });
+  }
+
+  // ── Hero Rocket Smooth Mouse Parallax & Thruster Pulse ──
+  const rocketCraft = document.querySelector('.rocket-craft-group');
+  if (rocketCraft) {
+    window.addEventListener('mousemove', e => {
+      if (window.scrollY > (window.innerHeight * 0.8)) return;
+      const nx = (e.clientX / window.innerWidth - 0.5) * 16;
+      const ny = (e.clientY / window.innerHeight - 0.5) * 10;
+      gsap.to(rocketCraft, {
+        x: nx,
+        y: ny,
+        rotation: nx * 0.22,
+        duration: 0.65,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+    });
+  }
 }
 
 /* ── CUSTOM CURSOR ─────────────────────────────────────────── */
