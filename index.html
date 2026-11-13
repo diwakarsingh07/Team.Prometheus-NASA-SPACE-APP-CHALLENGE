@@ -46,10 +46,34 @@
       <a href="#sec-contact" class="nav-hl">Contact Us</a>
     </nav>
     <div class="nav-right">
+      <button id="btn-tour" class="nav-tour-btn font-mono" title="Start Autonomous Cinematic Director Tour">
+        <span class="tour-dot"></span>
+        <i data-lucide="clapperboard"></i>
+        <span>CINEMATIC TOUR</span>
+      </button>
       <button id="btn-sound" class="nav-icon" title="Sound"><i data-lucide="volume-x"></i></button>
       <a href="scientist.html" class="nav-cta">Console →</a>
     </div>
   </header>
+
+  <!-- ============================================================ -->
+  <!-- CINEMATIC DIRECTOR TOUR HUD                                   -->
+  <!-- ============================================================ -->
+  <div id="tour-director-hud" class="tour-director-hud hidden font-mono">
+    <div class="tour-hud-top">
+      <div class="tour-hud-status">
+        <span class="tour-rec-dot"></span>
+        <span class="tour-rec-text">AUTONOMOUS DIRECTOR TOUR // ACTIVE</span>
+      </div>
+      <div id="tour-step-caption" class="tour-step-caption">INITIALIZING ORBITAL TRAJECTORY...</div>
+      <div class="tour-hud-actions">
+        <button id="btn-tour-record" class="tour-btn-action" title="Record High-Quality Video"><i data-lucide="video"></i><span>Record MP4</span></button>
+        <button id="btn-tour-pause" class="tour-btn-action" title="Pause / Resume Tour"><i data-lucide="pause"></i><span>Pause</span></button>
+        <button id="btn-tour-exit" class="tour-btn-action tour-btn-close" title="Exit Tour (ESC)"><i data-lucide="x"></i><span>Exit</span></button>
+      </div>
+    </div>
+    <div class="tour-progress-bar"><div id="tour-progress-fill" class="tour-progress-fill"></div></div>
+  </div>
 
   <!-- ============================================================ -->
   <!-- FIXED TELEMETRY HUD                                           -->

@@ -1708,6 +1708,73 @@
   }
 
   // --------------------------------------------------------------------------
+  // 8.1 AUTONOMOUS SCIENTIST CONSOLE TOUR CONTROLLER
+  // --------------------------------------------------------------------------
+  function updateSpectralChannel(ch) {
+    state.spectralChannel = ch;
+    state.wavelengthUm = (0.75 + ((state.spectralChannel - 1) / 101) * 4.25).toFixed(2);
+    state.detectorArray = Math.min(6, Math.floor((state.spectralChannel - 1) / 17) + 1);
+    const isMWIR = state.detectorArray >= 4;
+    const arrayName = `Array ${state.detectorArray} (${isMWIR ? 'MWIR' : 'SWIR'})`;
+
+    if (DOM.railChannelIdx) DOM.railChannelIdx.textContent = `Channel ${state.spectralChannel} / 102`;
+    if (DOM.railWavelengthVal) DOM.railWavelengthVal.textContent = `${state.wavelengthUm} µm`;
+    if (DOM.railDetectorName) DOM.railDetectorName.textContent = arrayName;
+    if (DOM.spectralChannelSlider) DOM.spectralChannelSlider.value = state.spectralChannel;
+    initOrUpdateSEDChart(ASTRONOMICAL_CATALOG[state.activeTileKey]);
+  }
+
+  function runScientistConsoleTour() {
+    console.log('🎬 Running Autonomous Scientist Console Tour');
+    const hud = document.createElement('div');
+    hud.id = 'scientist-tour-hud';
+    hud.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(6,10,18,0.92);backdrop-filter:blur(20px);border:1px solid #00e5ff;border-radius:12px;padding:8px 18px;font-family:"JetBrains Mono",monospace;font-size:11px;color:#00e5ff;box-shadow:0 0 35px rgba(0,229,255,0.4);display:flex;align-items:center;gap:12px;pointer-events:auto;';
+    hud.innerHTML = `
+      <span style="display:inline-block;width:9px;height:9px;background:#ff2a85;border-radius:50%;box-shadow:0 0 10px #ff2a85;animation:stourPulse 1.2s infinite;"></span>
+      <span id="stour-step-text">SCIENTIST TOUR: STEP 1/4 — TARGET WISE 0855-0714 (EPOCH BLINK)...</span>
+      <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:4px;cursor:pointer;font-size:10px;padding:3px 8px;">Exit</button>
+    `;
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes stourPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.6; } }`;
+    document.head.appendChild(style);
+    document.body.appendChild(hud);
+
+    const caption = document.getElementById('stour-step-text');
+
+    // Step 1: WISE 0855 Blink
+    syncCatalogTarget('wise0855');
+    setMode('blink');
+
+    // Step 2: Pixel Subtraction ΔI (at 4.5s)
+    setTimeout(() => {
+      if (caption) caption.textContent = 'SCIENTIST TOUR: STEP 2/4 — PIXEL SUBTRACTION ΔI (DISCOVERY DIPOLE DETECTED)...';
+      setMode('diff');
+    }, 4500);
+
+    // Step 3: Spectral Sweep 102 Channels (at 9s)
+    setTimeout(() => {
+      if (caption) caption.textContent = 'SCIENTIST TOUR: STEP 3/4 — SWEEPING 102 SPECTRAL BANDS (METHANE/ICE ABSORPTION)...';
+      let ch = 1;
+      const chTimer = setInterval(() => {
+        ch = (ch % 102) + 3;
+        updateSpectralChannel(ch);
+        if (ch >= 96) clearInterval(chTimer);
+      }, 120);
+    }, 9000);
+
+    // Step 4: Live CDS Aladin All-Sky Survey (at 15s)
+    setTimeout(() => {
+      if (caption) caption.textContent = 'SCIENTIST TOUR: STEP 4/4 — CROSS-SURVEY VERIFICATION (LIVE CDS ALADIN allWISE)...';
+      switchViewportMode('aladin');
+    }, 15000);
+
+    // Step 5: Tour Finished Banner (at 21s)
+    setTimeout(() => {
+      if (caption) caption.innerHTML = '<span style="color:#10b981;">🎉 TOUR COMPLETE — FULL NASA 102-BAND ARCHITECTURE CERTIFIED!</span>';
+    }, 21000);
+  }
+
+  // --------------------------------------------------------------------------
   // 9. INITIALIZATION LIFECYCLE
   // --------------------------------------------------------------------------
   function initializeEngine() {
@@ -1717,6 +1784,10 @@
     setupEventListeners();
     parseUrlParameters();
     startBlinkLoop();
+
+    if (window.location.search.includes('tour=true')) {
+      setTimeout(runScientistConsoleTour, 1200);
+    }
   }
 
   if (document.readyState === 'loading') {

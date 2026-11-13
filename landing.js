@@ -916,6 +916,195 @@ if ('serviceWorker' in navigator) {
   }
 }
 
+/* ── AUTONOMOUS DIRECTOR TOUR CONTROLLER ───────────────────── */
+const tourHUD = $('tour-director-hud');
+const tourCaption = $('tour-step-caption');
+const tourProgressFill = $('tour-progress-fill');
+const btnTour = $('btn-tour');
+const btnTourRecord = $('btn-tour-record');
+const btnTourPause = $('btn-tour-pause');
+const btnTourExit = $('btn-tour-exit');
+
+let tourActive = false;
+let tourPaused = false;
+let tourAnimFrame = null;
+let tourStartTime = 0;
+let tourPauseOffset = 0;
+let mediaRecorder = null;
+let recordedChunks = [];
+const TOUR_DURATION = 32000; // 32 seconds total automated flight path
+
+function startCinematicTour() {
+  if (tourActive) return;
+  tourActive = true;
+  tourPaused = false;
+  tourStartTime = performance.now();
+  tourPauseOffset = 0;
+  if (tourHUD) tourHUD.classList.remove('hidden');
+  if (btnTour) btnTour.style.borderColor = '#ff2a85';
+
+  if (!audioOn && typeof toggleAudio === 'function') toggleAudio();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  runTourLoop();
+}
+
+function stopCinematicTour() {
+  tourActive = false;
+  tourPaused = false;
+  if (tourAnimFrame) cancelAnimationFrame(tourAnimFrame);
+  if (tourHUD) tourHUD.classList.add('hidden');
+  if (btnTour) btnTour.style.borderColor = '';
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+function toggleTourPause() {
+  if (!tourActive) return;
+  tourPaused = !tourPaused;
+  if (tourPaused) {
+    if (tourAnimFrame) cancelAnimationFrame(tourAnimFrame);
+    if (btnTourPause) btnTourPause.innerHTML = `<i data-lucide="play"></i><span>Resume</span>`;
+    if (tourCaption) tourCaption.textContent = 'PAUSED // PRESS SPACE OR RESUME TO CONTINUE';
+  } else {
+    tourStartTime = performance.now() - tourPauseOffset;
+    if (btnTourPause) btnTourPause.innerHTML = `<i data-lucide="pause"></i><span>Pause</span>`;
+    runTourLoop();
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+function runTourLoop() {
+  if (!tourActive || tourPaused) return;
+  const now = performance.now();
+  const elapsed = now - tourStartTime;
+  tourPauseOffset = elapsed;
+  const progress = Math.min(1, elapsed / TOUR_DURATION);
+
+  if (tourProgressFill) {
+    tourProgressFill.style.width = (progress * 100) + '%';
+  }
+
+  const doc = document.documentElement;
+  const maxScroll = doc.scrollHeight - window.innerHeight;
+  const landEl = $('act-land');
+  const termEl = $('act-terminal');
+  const revEl = $('act-reveal');
+  const chalEl = $('act-challenge');
+
+  const landY = landEl ? landEl.offsetTop - 80 : maxScroll * 0.25;
+  const termY = termEl ? termEl.offsetTop - 60 : maxScroll * 0.45;
+  const revY = revEl ? revEl.offsetTop - 40 : maxScroll * 0.65;
+  const chalY = chalEl ? chalEl.offsetTop - 50 : maxScroll * 0.85;
+
+  let targetY = 0;
+  let caption = '';
+
+  if (progress < 0.12) {
+    targetY = 0;
+    caption = 'ACT I // ORBITAL ENTRY — 102 SPECTRAL CHANNELS (0.75 - 5.0 µm)';
+  } else if (progress < 0.38) {
+    const t = (progress - 0.12) / (0.38 - 0.12);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    targetY = ease * landY;
+    caption = 'ACT II // LUNAR TOUCHDOWN — ZERO ATMOSPHERIC LOSS (182.5d BASELINE)';
+  } else if (progress < 0.55) {
+    const t = (progress - 0.38) / (0.55 - 0.38);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    targetY = landY + ease * (termY - landY);
+    caption = 'ACT III // MISSION CONTROL — TEAM PROMETHEUS ARCHITECTURE';
+  } else if (progress < 0.78) {
+    const t = (progress - 0.55) / (0.78 - 0.55);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    targetY = termY + ease * (revY - termY);
+    caption = 'ACT IV // TIME MACHINE — CLYDE TOMBAUGH 1930 vs SPHEREx 2026 DIPOLE';
+
+    if (revealCanvas && revEl && typeof drawReveal === 'function') {
+      const cw = revealCanvas.width;
+      const ch = revealCanvas.height;
+      const sweepX = (cw * 0.25) + Math.sin(t * Math.PI * 4) * (cw * 0.35);
+      const sweepY = ch * 0.5;
+      if (typeof drawBrushMask === 'function') {
+        drawBrushMask(sweepX, sweepY, 110);
+      }
+    }
+  } else if (progress < 0.92) {
+    const t = (progress - 0.78) / (0.92 - 0.78);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    targetY = revY + ease * (chalY - revY);
+    caption = 'ACT V // THE CHALLENGE — PLANET X & SPHEREx LEVEL-2 CALIBRATED MATRICES';
+  } else {
+    targetY = chalY;
+    caption = 'DOCKING READY // ENTERING SPHEREx SCIENTIST CONSOLE (AUTO-TRANSITION)';
+  }
+
+  window.scrollTo(0, targetY);
+  if (tourCaption) tourCaption.textContent = caption;
+
+  if (progress < 1) {
+    tourAnimFrame = requestAnimationFrame(runTourLoop);
+  } else {
+    setTimeout(() => {
+      stopCinematicTour();
+      window.location.href = 'scientist.html?tour=true';
+    }, 1000);
+  }
+}
+
+async function toggleTourRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    if (btnTourRecord) btnTourRecord.innerHTML = `<i data-lucide="video"></i><span>Record MP4</span>`;
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 60, displaySurface: 'browser' },
+      audio: true
+    });
+    recordedChunks = [];
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Prometheus_Cinematic_Tour_${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start();
+    if (btnTourRecord) btnTourRecord.innerHTML = `<i data-lucide="square"></i><span>Stop Recording</span>`;
+    if (!tourActive) startCinematicTour();
+  } catch (err) {
+    console.warn('Screen recording notice:', err);
+    alert('Screen recording ready! Tip: You can also press [Win + Alt + R] anytime to record via Windows Game Bar.');
+    if (!tourActive) startCinematicTour();
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+if (btnTour) btnTour.addEventListener('click', startCinematicTour);
+if (btnTourRecord) btnTourRecord.addEventListener('click', toggleTourRecording);
+if (btnTourPause) btnTourPause.addEventListener('click', toggleTourPause);
+if (btnTourExit) btnTourExit.addEventListener('click', stopCinematicTour);
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && tourActive) stopCinematicTour();
+  if (e.code === 'Space' && tourActive) {
+    e.preventDefault();
+    toggleTourPause();
+  }
+});
+
+if (window.location.search.includes('tour=true')) {
+  window.addEventListener('load', () => {
+    setTimeout(startCinematicTour, 1200);
+  });
+}
+
 /* ── INIT ──────────────────────────────────────────────────── */
 startPreloading();
 if (window.lucide) lucide.createIcons();
