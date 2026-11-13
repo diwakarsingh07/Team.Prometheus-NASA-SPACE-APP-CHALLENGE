@@ -171,6 +171,10 @@ img,video,canvas{display:block}
   width:100vw;height:100vh;
   z-index:0;
   object-fit:contain;
+  pointer-events:none;
+  transform:translateZ(0);
+  will-change:transform;
+  backface-visibility:hidden;
 }
 
 /* ── FIXED NAV ─────────────────────────────────────────────── */

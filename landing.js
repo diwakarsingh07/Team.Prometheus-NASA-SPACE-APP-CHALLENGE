@@ -7,8 +7,13 @@
 'use strict';
 
 /* ── CONFIG ────────────────────────────────────────────────── */
-const TOTAL_FRAMES = 120;
-const FRAME_PATH = i => `frames_v2/frame_${String(i).padStart(3,'0')}.jpg`;
+const TOTAL_RAW_FRAMES = 120;
+const FRAME_STEP = 2; // Decimate to 60 optimized keyframes (50% memory & bandwidth savings)
+const TOTAL_FRAMES = Math.floor(TOTAL_RAW_FRAMES / FRAME_STEP); // 60 frames
+const FRAME_PATH = idx => {
+  const rawIdx = Math.min(TOTAL_RAW_FRAMES, idx * FRAME_STEP + 1);
+  return `frames_v2/frame_${String(rawIdx).padStart(3, '0')}.jpg`;
+};
 const LERP_FACTOR = 0.085;          // momentum smoothing
 const BG = '#030508';
 
@@ -45,16 +50,29 @@ const lmHint      = $('lm-hint');
 const lmSound     = $('lm-sound');
 const lmDiscovery = $('lm-discovery');
 
-/* ── STATE ─────────────────────────────────────────────────── */
+/* ── STATE & IDLE SLEEP CONTROLLER ─────────────────────────── */
 let frames = [];
 let loaded = 0;
 let ready = false;
 let scrollY = 0;
 let currentFrame = 0;     // float for sub-frame blending
 let displayFrame = 0;     // lerped value
+let lastDrawnFrame = -1;  // prevents duplicate idle draws
+let isDirty = true;       // dirty flag for force repaint
+let isScrolling = false;  // active scroll tracker
+let scrollTimer = null;
 let audioCtx = null;
 let audioOn = false;
 let droneNode = null;
+
+window.addEventListener('scroll', () => {
+  isScrolling = true;
+  isDirty = true;
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    isScrolling = false;
+  }, 120);
+}, { passive: true });
 
 /* ── DEEP SPACE STORY PRELOADER & INITIALIZATION ──────────── */
 function startPreloading() {
@@ -74,11 +92,12 @@ function startPreloading() {
 function preloadStoryFrames() {
   if (frames.length > 0) return; // Prevent duplicate invocation
 
-  // Load first frame with immediate priority to draw hero background instantly
+  // 1. Load first frame with immediate priority to draw hero background instantly
   const firstImg = new Image();
-  firstImg.src = FRAME_PATH(1);
+  firstImg.src = FRAME_PATH(0);
   const onFirstLoad = () => {
     ready = true;
+    isDirty = true;
     try { drawFrame(0); } catch(e) {}
   };
   firstImg.onload = onFirstLoad;
@@ -87,26 +106,48 @@ function preloadStoryFrames() {
   }
   frames[0] = firstImg;
 
-  // Stream in the remaining deep space frames asynchronously
-  for (let i = 2; i <= TOTAL_FRAMES; i++) {
+  // 2. Stream priority frames (first 8 descent frames for immediate scroll)
+  for (let i = 1; i < Math.min(8, TOTAL_FRAMES); i++) {
     const img = new Image();
     img.src = FRAME_PATH(i);
-    img.onload = img.onerror = () => {
-      loaded++;
-      if (loaded >= TOTAL_FRAMES - 1) {
-        ready = true;
-      }
-    };
-    frames[i - 1] = img;
+    img.onload = () => { loaded++; isDirty = true; };
+    frames[i] = img;
   }
+
+  // 3. Stream remaining frames in non-blocking batches of 4
+  let nextBatch = 8;
+  function streamRemainingFrames() {
+    if (nextBatch >= TOTAL_FRAMES) {
+      ready = true;
+      return;
+    }
+    const end = Math.min(nextBatch + 4, TOTAL_FRAMES);
+    for (let i = nextBatch; i < end; i++) {
+      const img = new Image();
+      img.src = FRAME_PATH(i);
+      img.onload = () => { loaded++; isDirty = true; };
+      frames[i] = img;
+    }
+    nextBatch = end;
+    if (nextBatch < TOTAL_FRAMES) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(streamRemainingFrames, { timeout: 300 });
+      } else {
+        setTimeout(streamRemainingFrames, 60);
+      }
+    }
+  }
+  setTimeout(streamRemainingFrames, 250);
 }
 
 /* ── CANVAS SIZING ─────────────────────────────────────────── */
 function sizeCanvas() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
+  // Cap DPR to 1.25 to prevent massive 4K canvas buffers that cause GPU stutters
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+  canvas.width = Math.round(window.innerWidth * dpr);
+  canvas.height = Math.round(window.innerHeight * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  isDirty = true;
   try { drawFrame(displayFrame || 0); } catch(e) {}
 }
 window.addEventListener('resize', sizeCanvas);
@@ -128,14 +169,6 @@ function getBestStoryFrame(idx) {
   for (let i = target + 1; i < TOTAL_FRAMES; i++) {
     if (frames[i] && frames[i].complete && frames[i].naturalWidth) {
       return frames[i];
-    }
-  }
-  // Fallback to loader frames if available
-  if (typeof loaderFrames !== 'undefined' && loaderFrames && loaderFrames.length) {
-    for (let i = loaderFrames.length - 1; i >= 0; i--) {
-      if (loaderFrames[i] && loaderFrames[i].complete && loaderFrames[i].naturalWidth) {
-        return loaderFrames[i];
-      }
     }
   }
   return null;
@@ -176,8 +209,8 @@ function drawFrame(floatIdx) {
   ctx.globalAlpha = 1;
   ctx.drawImage(imgA, dx, dy, dw, dh);
 
-  // Cross-fade next frame for sub-frame smoothness
-  if (t > 0.001 && imgB && imgB.complete && imgB.naturalWidth) {
+  // Cross-fade only when fractional transition is visually meaningful (> 0.04)
+  if (t > 0.04 && imgB && imgB.complete && imgB.naturalWidth) {
     ctx.globalAlpha = t;
     ctx.drawImage(imgB, dx, dy, dw, dh);
     ctx.globalAlpha = 1;
@@ -196,21 +229,29 @@ function getSequenceProgress() {
   const terminalEl = $('act-terminal');
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   if (!terminalEl) return getScrollProgress();
-  // Sequence reaches last frame (laptop open) when Act 3 Terminal is fully centered
   const terminalTrigger = terminalEl.offsetTop + terminalEl.offsetHeight * 0.5 - window.innerHeight * 0.5;
   return terminalTrigger > 0 ? Math.min(1, Math.max(0, scrollTop / terminalTrigger)) : 0;
 }
 
-/* ── ANIMATION LOOP ────────────────────────────────────────── */
+/* ── ANIMATION LOOP WITH ZERO-IDLE CPU/GPU SLEEP ────────────── */
 function tick() {
   if (ready) {
     const seqProgress = getSequenceProgress();
     const pageProgress = getScrollProgress();
     currentFrame = seqProgress * (TOTAL_FRAMES - 1);
-    // Momentum lerp for butter-smooth feel (240fps interpolation)
-    displayFrame += (currentFrame - displayFrame) * LERP_FACTOR;
-    drawFrame(displayFrame);
-    updateHUD(pageProgress);
+
+    const diff = Math.abs(currentFrame - displayFrame);
+    // Only repaint if frame is moving, user is scrolling, dirty flag set, or in tour mode
+    if (diff > 0.005 || isScrolling || isDirty || tourActive) {
+      displayFrame += (currentFrame - displayFrame) * LERP_FACTOR;
+      
+      if (Math.abs(displayFrame - lastDrawnFrame) > 0.006 || isDirty) {
+        drawFrame(displayFrame);
+        lastDrawnFrame = displayFrame;
+        isDirty = false;
+      }
+      updateHUD(pageProgress);
+    }
   }
   requestAnimationFrame(tick);
 }
