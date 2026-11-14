@@ -7,14 +7,14 @@
 'use strict';
 
 /* ── CONFIG ────────────────────────────────────────────────── */
-const TOTAL_RAW_FRAMES = 120;
-const FRAME_STEP = 2; // Decimate to 60 optimized keyframes (50% memory & bandwidth savings)
-const TOTAL_FRAMES = Math.floor(TOTAL_RAW_FRAMES / FRAME_STEP); // 60 frames
+const TOTAL_RAW_FRAMES = 240;
+const FRAME_STEP = 1; // Full 240-frame density for buttery-smooth 120fps/240fps scrolling
+const TOTAL_FRAMES = 240;
 const FRAME_PATH = idx => {
-  const rawIdx = Math.min(TOTAL_RAW_FRAMES, idx * FRAME_STEP + 1);
+  const rawIdx = Math.max(1, Math.min(TOTAL_RAW_FRAMES, idx + 1));
   return `frames_v2/frame_${String(rawIdx).padStart(3, '0')}.jpg`;
 };
-const LERP_FACTOR = 0.085;          // momentum smoothing
+const LERP_FACTOR = 0.095;          // silky momentum smoothing
 const BG = '#030508';
 
 /* ── DOM REFS ──────────────────────────────────────────────── */
