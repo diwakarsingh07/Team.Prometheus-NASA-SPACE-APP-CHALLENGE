@@ -1,13 +1,12 @@
 /* ============================================================
-   TEAM PROMETHEUS — SERVICE WORKER (prometheus-v3)
+   TEAM PROMETHEUS — SERVICE WORKER (prometheus-v5-gemini)
    Offline & repeat-visitor asset caching layer
    - Precaches app shell (HTML, CSS, JS)
-   - Network-first with cache fallback for navigation/HTML
-   - Cache-first for high-frequency video frames
-   - Stale-while-revalidate for scripts, styles, fonts, media
+   - Network-first for frames and navigation to prevent stale video caches
+   - Auto-purges old astronaut caches on activate
    ============================================================ */
 
-const CACHE_NAME = 'prometheus-v3';
+const CACHE_NAME = 'prometheus-v5-gemini';
 
 const PRECACHE_URLS = [
   '/',
@@ -26,37 +25,38 @@ const PRECACHE_URLS = [
 
 // Install: precache app shell and skip waiting immediately
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
       try {
         await cache.addAll(PRECACHE_URLS);
       } catch (err) {
-        // Resilient fallback for individual assets
         await Promise.all(
           PRECACHE_URLS.map(async url => {
             try {
               const res = await fetch(url);
-              if (res.ok) {
-                await cache.put(url, res);
-              }
+              if (res.ok) await cache.put(url, res);
             } catch (e) {
               console.warn('[SW] Precache item failed:', url, e);
             }
           })
         );
       }
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Activate: clean up obsolete caches and claim existing clients
+// Activate: clean up obsolete caches (especially v1, v2, v3, v4) and claim clients
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames
           .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
+          .map(name => {
+            console.log('[SW] Purging old cache:', name);
+            return caches.delete(name);
+          })
       );
     }).then(() => self.clients.claim())
   );
@@ -114,27 +114,26 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Strategy 2: Image Frames (frames_loader/ & frames_v2/) -> Cache-First
+  // Strategy 2: Image Frames (frames_loader/ & frames_v2/) -> Network-First (fetches latest video frames, caches for offline)
   if (isFrame) {
     event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then(networkResponse => {
+      fetch(event.request)
+        .then(networkResponse => {
           if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
           }
           return networkResponse;
-        }).catch(() => {
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
           return new Response('Frame Unavailable Offline', {
             status: 503,
             statusText: 'Service Unavailable',
             headers: { 'Content-Type': 'text/plain' }
           });
-        });
-      })
+        })
     );
     return;
   }

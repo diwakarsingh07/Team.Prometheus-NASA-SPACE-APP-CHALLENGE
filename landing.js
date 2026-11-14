@@ -10,9 +10,10 @@
 const TOTAL_RAW_FRAMES = 240;
 const FRAME_STEP = 1; // Full 240-frame density for buttery-smooth 120fps/240fps scrolling
 const TOTAL_FRAMES = 240;
+const FRAME_VERSION = 'gemini_v240';
 const FRAME_PATH = idx => {
   const rawIdx = Math.max(1, Math.min(TOTAL_RAW_FRAMES, idx + 1));
-  return `frames_v2/frame_${String(rawIdx).padStart(3, '0')}.jpg`;
+  return `frames_v2/frame_${String(rawIdx).padStart(3, '0')}.jpg?v=${FRAME_VERSION}`;
 };
 const LERP_FACTOR = 0.095;          // silky momentum smoothing
 const BG = '#030508';
@@ -1096,14 +1097,27 @@ document.querySelectorAll('.nav-links a').forEach(link => {
   });
 });
 
-/* ── SERVICE WORKER REGISTRATION ───────────────────────────── */
-if ('serviceWorker' in navigator) {
-  if (document.readyState === 'complete') {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed:', err));
-  } else {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed:', err));
+/* ── SERVICE WORKER REGISTRATION & STALE CACHE PURGE ───────── */
+if ('caches' in window) {
+  caches.keys().then(keys => {
+    keys.forEach(k => {
+      if (k !== 'prometheus-v5-gemini') {
+        caches.delete(k);
+      }
     });
+  }).catch(() => {});
+}
+
+if ('serviceWorker' in navigator) {
+  const registerSW = () => {
+    navigator.serviceWorker.register('/sw.js?v=5').then(reg => {
+      if (reg) reg.update();
+    }).catch(err => console.warn('SW reg failed:', err));
+  };
+  if (document.readyState === 'complete') {
+    registerSW();
+  } else {
+    window.addEventListener('load', registerSW);
   }
 }
 
