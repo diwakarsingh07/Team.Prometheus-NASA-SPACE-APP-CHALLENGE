@@ -305,6 +305,36 @@
               <input type="checkbox" id="chk-show-grid" checked onchange="renderStudio()">
               <span>Show sky coordinate grid lines</span>
             </label>
+            <label class="helper-toggle-row">
+              <input type="checkbox" id="chk-blink-audio" onchange="toggleBlinkAudio(this.checked)">
+              <span>🔊 Audible Blink Audio Cue (Radar ping)</span>
+            </label>
+          </div>
+
+          <!-- INFRARED AUDIO SONIFICATION MODULE (102 BANDS) -->
+          <div class="mode-controls-box" style="border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.05);border-radius:10px;padding:12px;margin-top:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:0.8rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:6px;">
+                <span>🎵</span> Infrared Audio Sonification
+              </span>
+              <span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);font-family:var(--font-mono);">102 BANDS</span>
+            </div>
+            <p style="font-size:0.75rem;color:var(--text-soft);margin-bottom:10px;line-height:1.4;">
+              Hear the 102 infrared channels mapped to audio frequencies. Listen for the pitch dip at <strong>1.66 µm</strong> indicating planetary atmospheric methane!
+            </p>
+            <button type="button" class="term-tab-btn active" id="btn-play-sonification" onclick="toggleSonification()" style="width:100%;background:rgba(0,229,255,0.18);border:1px solid var(--accent-cyan);color:#fff;font-weight:600;padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span id="sonify-btn-icon">▶️</span> <span id="sonify-btn-text">Sonify 102-Band Spectrum</span>
+            </button>
+            <div id="sonify-progress-wrap" style="display:none;margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.72rem;font-family:var(--font-mono);color:var(--accent-cyan);margin-bottom:4px;">
+                <span id="sonify-wave-label">0.75 µm</span>
+                <span id="sonify-feature-label" style="color:var(--accent-amber);font-weight:700;">Scanning...</span>
+                <span>5.00 µm</span>
+              </div>
+              <div style="width:100%;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+                <div id="sonify-progress-fill" style="width:0%;height:100%;background:linear-gradient(90deg,#00e5ff,#b388ff,#ffb300);transition:width 0.04s linear;"></div>
+              </div>
+            </div>
           </div>
 
           <div class="mode-tip-card" id="mode-tip-card">
@@ -802,6 +832,29 @@
     }
 
     // --- Blink Mode Engine ---
+    let blinkAudioActive = false;
+    function toggleBlinkAudio(active) {
+      blinkAudioActive = !!active;
+      if (blinkAudioActive) initSonifyAudio();
+    }
+
+    function playBlinkTick(isEpochA) {
+      if (!blinkAudioActive) return;
+      try {
+        initSonifyAudio();
+        const osc = sonifyCtx.createOscillator();
+        const gain = sonifyCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isEpochA ? 880 : 587.33, sonifyCtx.currentTime); // High/mid dual ping
+        gain.gain.setValueAtTime(0.04, sonifyCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, sonifyCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(sonifyCtx.destination);
+        osc.start();
+        osc.stop(sonifyCtx.currentTime + 0.05);
+      } catch(e) {}
+    }
+
     function startBlinkLoop(target, epA, epB, showOverlays, showGrid) {
       const canvas = document.getElementById("canvas-single-interactive");
       const tag = document.getElementById("single-mode-live-tag");
@@ -812,6 +865,7 @@
           ? `SHOWING: IMAGE 1 (${epA.epoch.shortDate})`
           : `SHOWING: IMAGE 2 (${epB.epoch.shortDate})`;
         tag.style.color = blinkShowingA ? "var(--accent-cyan)" : "var(--accent-amber)";
+        playBlinkTick(blinkShowingA);
       }
       drawFrame();
       if (blinkPlaying) {
@@ -820,6 +874,125 @@
           drawFrame();
         }, 1000 / blinkHz);
       }
+    }
+
+    // --- INFRARED WEB AUDIO SONIFICATION ENGINE (102 BANDS) ---
+    let sonifyCtx = null;
+    let sonifyIsPlaying = false;
+    let sonifyTimer = null;
+
+    function initSonifyAudio() {
+      if (!sonifyCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) sonifyCtx = new AudioCtx();
+      }
+      if (sonifyCtx && sonifyCtx.state === 'suspended') {
+        sonifyCtx.resume();
+      }
+    }
+
+    function toggleSonification() {
+      if (sonifyIsPlaying) {
+        stopSonification();
+      } else {
+        playSonification();
+      }
+    }
+
+    function stopSonification() {
+      sonifyIsPlaying = false;
+      if (sonifyTimer) clearInterval(sonifyTimer);
+      const btnText = document.getElementById("sonify-btn-text");
+      const btnIcon = document.getElementById("sonify-btn-icon");
+      const progWrap = document.getElementById("sonify-progress-wrap");
+      if (btnText) btnText.textContent = "Sonify 102-Band Spectrum";
+      if (btnIcon) btnIcon.textContent = "▶️";
+      if (progWrap) progWrap.style.display = "none";
+    }
+
+    function playSonification() {
+      initSonifyAudio();
+      if (!sonifyCtx) return;
+      sonifyIsPlaying = true;
+      
+      const btnText = document.getElementById("sonify-btn-text");
+      const btnIcon = document.getElementById("sonify-btn-icon");
+      const progWrap = document.getElementById("sonify-progress-wrap");
+      const waveLbl = document.getElementById("sonify-wave-label");
+      const featLbl = document.getElementById("sonify-feature-label");
+      const progFill = document.getElementById("sonify-progress-fill");
+      
+      if (btnText) btnText.textContent = "Stop Audio";
+      if (btnIcon) btnIcon.textContent = "⏹️";
+      if (progWrap) progWrap.style.display = "block";
+
+      const totalBands = 102;
+      let band = 0;
+      const durationMs = 4500; // 4.5 second sweep
+      const stepInterval = durationMs / totalBands;
+
+      sonifyTimer = setInterval(() => {
+        if (band >= totalBands) {
+          stopSonification();
+          return;
+        }
+        
+        // Wavelength: 0.75 um to 5.0 um
+        const wavelength = 0.75 + (band / (totalBands - 1)) * (5.0 - 0.75);
+        const pct = (band / totalBands) * 100;
+        
+        if (progFill) progFill.style.width = pct + "%";
+        if (waveLbl) waveLbl.textContent = wavelength.toFixed(2) + " µm";
+        
+        // Frequency mapping: 220Hz (A3) up to 880Hz (A5)
+        let freq = 220 + (band / totalBands) * 660;
+        let gainVal = 0.08;
+        let featureText = "Continuum Thermal Flux";
+        
+        // Physical Infrared Absorption Dips:
+        // 1. Methane CH4 absorption band at 1.66 µm (band ~ 22)
+        if (wavelength >= 1.60 && wavelength <= 1.72) {
+          freq *= 0.72; // Pitch dips audibly into absorption well
+          gainVal = 0.02;
+          featureText = "⚡ Methane (CH4) Dip at 1.66 µm!";
+        }
+        // 2. Water-ice H2O absorption band at 3.05 µm (band ~ 55)
+        else if (wavelength >= 2.95 && wavelength <= 3.15) {
+          freq *= 0.65;
+          gainVal = 0.02;
+          featureText = "❄️ Water-Ice (H2O) Dip at 3.05 µm!";
+        }
+        // 3. Carbon Dioxide CO2 band at 4.26 µm
+        else if (wavelength >= 4.20 && wavelength <= 4.35) {
+          freq *= 0.75;
+          gainVal = 0.03;
+          featureText = "🪐 CO2 Atmospheric Band at 4.26 µm";
+        }
+
+        if (featLbl) {
+          featLbl.textContent = featureText;
+          featLbl.style.color = featureText.includes("Dip") ? "var(--accent-amber)" : "var(--accent-cyan)";
+        }
+
+        // Synthesize harmonic tone with smooth envelope
+        try {
+          const osc = sonifyCtx.createOscillator();
+          const gain = sonifyCtx.createGain();
+          osc.type = 'triangle'; // warm, celestial tone
+          osc.frequency.setValueAtTime(freq, sonifyCtx.currentTime);
+          
+          gain.gain.setValueAtTime(0.001, sonifyCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(gainVal, sonifyCtx.currentTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, sonifyCtx.currentTime + stepInterval/1000);
+          
+          osc.connect(gain);
+          gain.connect(sonifyCtx.destination);
+          osc.start();
+          osc.stop(sonifyCtx.currentTime + stepInterval/1000);
+        } catch(e) {}
+
+        band++;
+      }, stepInterval);
     }
 
     function toggleBlinkPlayback() {
