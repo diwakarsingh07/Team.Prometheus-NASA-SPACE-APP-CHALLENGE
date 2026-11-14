@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Prometheus — NASA Space Apps 2026 Mission Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #040711;
+      --card-bg: rgba(13, 21, 38, 0.95);
+      --border: rgba(0, 229, 255, 0.25);
+      --accent-cyan: #00e5ff;
+      --accent-purple: #b388ff;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .poster-container {
+      max-width: 1200px;
+      width: 100%;
+      background: radial-gradient(circle at 50% 0%, #0e1b33 0%, #040711 75%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 45px 50px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.9), 0 0 40px rgba(0,229,255,0.12);
+    }
+    .poster-header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 25px;
+      position: relative;
+    }
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: var(--accent-cyan);
+      background: rgba(0,229,255,0.1);
+      border: 1px solid rgba(0,229,255,0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 15px;
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .subhead {
+      font-size: 1rem;
+      color: var(--text-dim);
+    }
+    
+    /* Flowchart Grid */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 25px;
+      position: relative;
+    }
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .flow-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .flow-card.highlight-cyan {
+      border-color: rgba(0,229,255,0.35);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0,229,255,0.1);
+    }
+    .flow-card.highlight-purple {
+      border-color: rgba(179,136,255,0.35);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(179,136,255,0.1);
+    }
+    .flow-card.highlight-amber {
+      border-color: rgba(245,158,11,0.35);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(245,158,11,0.1);
+    }
+    
+    .card-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .col-cyan { color: var(--accent-cyan); }
+    .col-purple { color: var(--accent-purple); }
+    .col-amber { color: var(--accent-amber); }
+    .col-emerald { color: var(--accent-emerald); }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .card-body {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    .spec-pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Arrow Connector Banner */
+    .pipeline-connector {
+      grid-column: 1 / -1;
+      background: linear-gradient(90deg, rgba(0,229,255,0.1), rgba(179,136,255,0.15), rgba(245,158,11,0.1));
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #fff;
+      margin: 10px 0;
+    }
+    .arrow-icon { color: var(--accent-cyan); font-weight: 800; }
+
+    /* Footer & Actions */
+    .poster-footer {
+      margin-top: 35px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+    .print-bar {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .action-btn {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 20px rgba(0,229,255,0.4);
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      background: #38bdf8;
+      transform: translateY(-2px);
+    }
+    @media print {
+      body { padding: 0; background: #000; }
+      .print-bar { display: none; }
+      .poster-container { border: none; box-shadow: none; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar">
+    <button class="action-btn" onclick="window.print()">🖨️ Print / Save as High-Res PDF (For Miro / Submission)</button>
+    <a href="index.html" style="color:var(--accent-cyan); text-decoration:none; display:flex; align-items:center; font-size:0.9rem; font-weight:600;">← Back to Landing Page</a>
+  </div>
+
+  <div class="poster-container">
+    <header class="poster-header">
+      <div class="badge-top">NASA SPACE APPS CHALLENGE 2026 // SYSTEM ARCHITECTURE</div>
+      <h1>SPHEREx Dual-Engine Architecture</h1>
+      <p class="subhead">A zero-cost, high-performance web architecture combining client-side astrophysics with 240fps+ scrollytelling</p>
+    </header>
+
+    <div class="flow-grid">
+      
+      <!-- Column 1: Data Ingest & Ground Truth -->
+      <div class="flow-col">
+        <div class="flow-card highlight-cyan">
+          <span class="card-label col-cyan">STAGE 01 · DATA INGESTION</span>
+          <div class="card-title">NASA & Astronomical Catalogs</div>
+          <p class="card-body">Direct ingestion of multi-epoch infrared surveys, astrometric vector baselines, and historical photographic plates.</p>
+          <div class="pill-list">
+            <span class="spec-pill">NASA IPAC / IRSA</span>
+            <span class="spec-pill">ESA Gaia DR3</span>
+            <span class="spec-pill">Lowell 1930</span>
+            <span class="spec-pill">Level-2 FITS</span>
+          </div>
+        </div>
+
+        <div class="flow-card">
+          <span class="card-label col-cyan">GROUND-TRUTH BENCHMARKS</span>
+          <div class="card-title">5 Validated Calibration Targets</div>
+          <p class="card-body">Verified against real celestial targets to eliminate false positives in Kuiper Belt Planet X detection.</p>
+          <div class="pill-list">
+            <span class="spec-pill">Barnard's Star (>10"/yr)</span>
+            <span class="spec-pill">WISE 0855 (~250K Y-Dwarf)</span>
+            <span class="spec-pill">Epsilon Indi B (Binary)</span>
+            <span class="spec-pill">RW Aur & R Dra (Variables)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Core Processing Pipeline -->
+      <div class="flow-col">
+        <div class="flow-card highlight-purple">
+          <span class="card-label col-purple">STAGE 02 · CLIENT-SIDE ASTROPHYSICS</span>
+          <div class="card-title">102-Band Hyperspectral Core</div>
+          <p class="card-body">High-throughput in-browser image matrix math running at 60–120 fps without server costs.</p>
+          <div class="pill-list">
+            <span class="spec-pill">0.75 – 5.0 µm Slicing</span>
+            <span class="spec-pill">Z-Scale Dynamic Stretch</span>
+            <span class="spec-pill">Delta-I (ΔI) Subtraction</span>
+            <span class="spec-pill">Signal-to-Noise Coaddition</span>
+          </div>
+        </div>
+
+        <div class="flow-card">
+          <span class="card-label col-purple">ASTROMETRIC DISAMBIGUATION</span>
+          <div class="card-title">Gaia Vector Cross-Matching</div>
+          <p class="card-body">On-the-fly cone search matching proper motion (&mu;&alpha;, &mu;&delta;) and parallax (&varpi;) vectors to filter high-velocity galactic stars from moving solar system bodies.</p>
+        </div>
+      </div>
+
+      <!-- Column 3: Dual Interfaces & Verified Output -->
+      <div class="flow-col">
+        <div class="flow-card highlight-amber">
+          <span class="card-label col-amber">STAGE 03 · DUAL WORKFLOW INTERFACES</span>
+          <div class="card-title">Citizen Explorer vs Scientist Mode</div>
+          <p class="card-body">Tailored for distinct audiences sharing the same calibrated science core.</p>
+          <div class="pill-list">
+            <span class="spec-pill">Citizen: Blink Comparator</span>
+            <span class="spec-pill">Citizen: Web Audio Sonification</span>
+            <span class="spec-pill">Scientist: 3-Col FITS Studio</span>
+            <span class="spec-pill">Scientist: 102-Band SED Fit</span>
+          </div>
+        </div>
+
+        <div class="flow-card">
+          <span class="card-label col-emerald">STAGE 04 · SCIENTIFIC OUTPUT</span>
+          <div class="card-title">Certified JSON Discovery Dossier</div>
+          <p class="card-body">Exports verifiable discovery packets including WCS coordinates, 102-band flux profiles, and delta photometry for astrophysics peer review.</p>
+        </div>
+      </div>
+
+      <!-- Connecting Pipeline Ribbon -->
+      <div class="pipeline-connector">
+        <span>RAW DATA INGEST</span> <span class="arrow-icon">➔</span>
+        <span>CLIENT MATRIX MATH</span> <span class="arrow-icon">➔</span>
+        <span>MULTI-MODAL EXPLORATION</span> <span class="arrow-icon">➔</span>
+        <span>VERIFIED DISCOVERY DOSSIER</span>
+      </div>
+
+    </div>
+
+    <footer class="poster-footer">
+      <div><strong>TEAM PROMETHEUS</strong> // NASA Space Apps Challenge 2026</div>
+      <div><strong>LIVE PLATFORM:</strong> www.teamprometheus.us</div>
+      <div><strong>REPO:</strong> github.com/diwakarsingh07/Team.Prometheus-NASA-SPACE-APP-CHALLENGE</div>
+    </footer>
+  </div>
+
+</body>
+</html>
