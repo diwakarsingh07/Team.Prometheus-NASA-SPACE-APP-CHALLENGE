@@ -400,6 +400,33 @@ html.lenis, html.lenis body {
 .v-green{color:#69f0ae}
 .hud-bar{width:80px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
 .hud-bar-f{height:100%;width:0;background:linear-gradient(90deg,#00e5ff,#7c4dff);border-radius:2px;transition:width .05s linear}
+.hud-sound-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: 20px;
+  padding: 4px 10px;
+  color: #00e5ff;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 6px;
+}
+.hud-sound-btn:hover {
+  background: rgba(0, 229, 255, 0.25);
+  border-color: #00e5ff;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+.hud-sound-btn.playing {
+  background: rgba(255, 179, 0, 0.2);
+  border-color: #ffb300;
+  color: #ffb300;
+  box-shadow: 0 0 12px rgba(255, 179, 0, 0.4);
+}
 
 /* ── SCROLL SECTIONS ───────────────────────────────────────── */
 .act{

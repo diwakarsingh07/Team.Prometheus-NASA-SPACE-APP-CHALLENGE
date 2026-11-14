@@ -652,56 +652,44 @@ document.addEventListener('mouseout', e => {
   dustTick();
 })();
 
-/* ── SOUND ENGINE ──────────────────────────────────────────── */
+/* ── SOUND ENGINE (ORIGINAL CINEMATIC AUDIO FROM VIDEO) ──────────── */
+let bgAudio = null;
+
 function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  // Sub-bass cosmic drone (45 Hz)
-  const osc = audioCtx.createOscillator();
-  osc.type = 'sine';
-  osc.frequency.value = 45;
-  const gain = audioCtx.createGain();
-  gain.gain.value = 0;
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start();
-  droneNode = gain;
-
-  // Subtle high hiss layer
-  const bufferSize = audioCtx.sampleRate * 2;
-  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const data = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.02;
-  const noiseSource = audioCtx.createBufferSource();
-  noiseSource.buffer = noiseBuffer;
-  noiseSource.loop = true;
-  const noiseGain = audioCtx.createGain();
-  noiseGain.gain.value = 0;
-  const hipass = audioCtx.createBiquadFilter();
-  hipass.type = 'highpass';
-  hipass.frequency.value = 4000;
-  noiseSource.connect(hipass);
-  hipass.connect(noiseGain);
-  noiseGain.connect(audioCtx.destination);
-  noiseSource.start();
-
-  // Store for toggle
-  audioCtx._droneGain = gain;
-  audioCtx._noiseGain = noiseGain;
+  if (bgAudio) return;
+  bgAudio = new Audio('astronaut_audio.mp3');
+  bgAudio.loop = true;
+  bgAudio.preload = 'auto';
+  bgAudio.volume = 0.8;
 }
 
 function toggleSound() {
   initAudio();
   audioOn = !audioOn;
-  const t = audioCtx.currentTime;
-  audioCtx._droneGain.gain.linearRampToValueAtTime(audioOn ? 0.12 : 0, t + 0.3);
-  audioCtx._noiseGain.gain.linearRampToValueAtTime(audioOn ? 0.04 : 0, t + 0.3);
-  // Update icon
-  const icon = btnSound.querySelector('i');
-  if (icon) {
-    icon.setAttribute('data-lucide', audioOn ? 'volume-2' : 'volume-x');
-    lucide.createIcons();
+  
+  const icon = btnSound ? btnSound.querySelector('i') : null;
+  const txt = document.getElementById('btn-sound-txt');
+  
+  if (audioOn) {
+    bgAudio.play().then(() => {
+      if (btnSound) btnSound.classList.add('playing');
+      if (txt) txt.textContent = 'PLAYING';
+      if (icon) {
+        icon.setAttribute('data-lucide', 'volume-2');
+        if (window.lucide) lucide.createIcons();
+      }
+    }).catch(e => {
+      console.warn('Audio play blocked:', e);
+      audioOn = false;
+    });
+  } else {
+    bgAudio.pause();
+    if (btnSound) btnSound.classList.remove('playing');
+    if (txt) txt.textContent = 'AUDIO';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'volume-x');
+      if (window.lucide) lucide.createIcons();
+    }
   }
 }
 
@@ -1038,24 +1026,10 @@ if (lmHint) {
   });
 }
 
-// Sonification button
+// Mission Audio button
 if (lmSound) {
   lmSound.addEventListener('click', () => {
-    initAudio();
-    // Play a quick ascending tone sequence representing IR spectrum
-    const now = audioCtx.currentTime;
-    for (let i = 0; i < 12; i++) {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = 200 + i * 80 + Math.random() * 40;
-      g.gain.value = 0.06;
-      g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.12);
-      osc.connect(g);
-      g.connect(audioCtx.destination);
-      osc.start(now + i * 0.12);
-      osc.stop(now + i * 0.12 + 0.15);
-    }
+    toggleSound();
   });
 }
 
