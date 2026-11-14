@@ -124,6 +124,12 @@ function initLenis() {
 /* ── DEEP SPACE STORY PRELOADER & INITIALIZATION ──────────── */
 function startPreloading() {
   initLenis();
+  const bgVid = $('bg-video');
+  if (bgVid) {
+    bgVid.play().catch(() => {});
+    document.addEventListener('touchstart', () => bgVid.play().catch(() => {}), { once: true });
+    document.addEventListener('click', () => bgVid.play().catch(() => {}), { once: true });
+  }
   document.documentElement.classList.add('preloaded');
   ready = true;
   if (nav) nav.classList.add('visible');
@@ -224,6 +230,7 @@ function getBestStoryFrame(idx) {
 
 /* ── DRAW ENGINE — Sub-frame cross-fade blending ───────────── */
 function drawFrame(floatIdx) {
+  if (!canvas || !ctx || canvas.style.display === 'none') return;
   if (!frames.length) return;
   const lo = Math.floor(floatIdx);
   const hi = Math.min(lo + 1, TOTAL_FRAMES - 1);
