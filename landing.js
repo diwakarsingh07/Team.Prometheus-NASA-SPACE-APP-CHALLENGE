@@ -20,7 +20,7 @@ const BG = '#030508';
 /* ── DOM REFS ──────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
 const canvas      = $('seq-canvas');
-const ctx         = canvas ? canvas.getContext('2d') : null;
+const ctx         = canvas.getContext('2d');
 const nav         = $('nav');
 const hud         = $('hud');
 const hAlt        = $('h-alt');
@@ -124,12 +124,6 @@ function initLenis() {
 /* ── DEEP SPACE STORY PRELOADER & INITIALIZATION ──────────── */
 function startPreloading() {
   initLenis();
-  const bgVid = $('bg-video');
-  if (bgVid) {
-    bgVid.play().catch(() => {});
-    document.addEventListener('touchstart', () => bgVid.play().catch(() => {}), { once: true });
-    document.addEventListener('click', () => bgVid.play().catch(() => {}), { once: true });
-  }
   document.documentElement.classList.add('preloaded');
   ready = true;
   if (nav) nav.classList.add('visible');
@@ -144,7 +138,54 @@ function startPreloading() {
 }
 
 function preloadStoryFrames() {
-  // Disabled: Native background video is active
+  if (frames.length > 0) return; // Prevent duplicate invocation
+
+  // 1. Load first frame with immediate priority to draw hero background instantly
+  const firstImg = new Image();
+  firstImg.src = FRAME_PATH(0);
+  const onFirstLoad = () => {
+    ready = true;
+    isDirty = true;
+    try { drawFrame(0); } catch(e) {}
+  };
+  firstImg.onload = onFirstLoad;
+  if (typeof firstImg.decode === 'function') {
+    firstImg.decode().then(onFirstLoad).catch(onFirstLoad);
+  }
+  frames[0] = firstImg;
+
+  // 2. Stream priority frames (first 8 descent frames for immediate scroll)
+  for (let i = 1; i < Math.min(8, TOTAL_FRAMES); i++) {
+    const img = new Image();
+    img.src = FRAME_PATH(i);
+    img.onload = () => { loaded++; isDirty = true; };
+    frames[i] = img;
+  }
+
+  // 3. Stream remaining frames in non-blocking batches of 4
+  let nextBatch = 8;
+  function streamRemainingFrames() {
+    if (nextBatch >= TOTAL_FRAMES) {
+      ready = true;
+      return;
+    }
+    const end = Math.min(nextBatch + 4, TOTAL_FRAMES);
+    for (let i = nextBatch; i < end; i++) {
+      const img = new Image();
+      img.src = FRAME_PATH(i);
+      img.onload = () => { loaded++; isDirty = true; };
+      frames[i] = img;
+    }
+    nextBatch = end;
+    if (nextBatch < TOTAL_FRAMES) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(streamRemainingFrames, { timeout: 300 });
+      } else {
+        setTimeout(streamRemainingFrames, 60);
+      }
+    }
+  }
+  setTimeout(streamRemainingFrames, 250);
 }
 
 /* ── CANVAS SIZING ─────────────────────────────────────────── */
@@ -181,9 +222,47 @@ function getBestStoryFrame(idx) {
   return null;
 }
 
-/* ── DRAW ENGINE (DISABLED — NATIVE BACKGROUND VIDEO RUNNING) ── */
+/* ── DRAW ENGINE — Sub-frame cross-fade blending ───────────── */
 function drawFrame(floatIdx) {
-  // Disabled: Native background video is active
+  if (!frames.length) return;
+  const lo = Math.floor(floatIdx);
+  const hi = Math.min(lo + 1, TOTAL_FRAMES - 1);
+  const t = floatIdx - lo;
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  let imgA = frames[lo];
+  let imgB = frames[hi];
+  if (!imgA || !imgA.complete || !imgA.naturalWidth) {
+    imgA = getBestStoryFrame(lo);
+    imgB = null;
+  }
+  if (!imgA) return;
+
+  // Single opaque fill pass (eliminates redundant clearRect CPU/GPU fill-rate thrashing)
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Contain-fit calculation
+  const iw = imgA.naturalWidth || 1280;
+  const ih = imgA.naturalHeight || 720;
+  const scale = Math.min(W / iw, H / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (W - dw) / 2;
+  const dy = (H - dh) / 2;
+
+  // Draw base frame
+  ctx.globalAlpha = 1;
+  ctx.drawImage(imgA, dx, dy, dw, dh);
+
+  // Cross-fade only when fractional transition is visually meaningful (> 0.04)
+  if (t > 0.04 && imgB && imgB.complete && imgB.naturalWidth) {
+    ctx.globalAlpha = t;
+    ctx.drawImage(imgB, dx, dy, dw, dh);
+    ctx.globalAlpha = 1;
+  }
 }
 
 /* ── SCROLL → FRAME MAPPING ────────────────────────────────── */

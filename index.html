@@ -7,8 +7,8 @@
   <meta name="description" content="An Awwwards-caliber scroll-driven cinematic experience. Descend to the Moon, open the discovery terminal, and hunt for Planet X across 102 infrared bands.">
 
   <style>html,body{background:#030508;color:#fff;margin:0}</style>
-  <link rel="preload" as="video" href="astronaut_bg.mp4" type="video/mp4">
-  <link rel="stylesheet" href="landing.css?v=2026.11.14.bg2">
+  <link rel="preload" as="image" href="frames_v2/frame_001.jpg" fetchpriority="high">
+  <link rel="stylesheet" href="landing.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
@@ -29,11 +29,9 @@
   <div id="cur-ring" class="cur-ring"></div>
 
   <!-- ============================================================ -->
-  <!-- CINEMATIC BACKGROUND VIDEO (GEMINI ASTRONAUT)                -->
+  <!-- FIXED CANVAS (image-sequence scrub)                           -->
   <!-- ============================================================ -->
-  <video id="bg-video" class="bg-video" autoplay loop muted playsinline webkit-playsinline preload="auto">
-    <source src="astronaut_bg.mp4" type="video/mp4">
-  </video>
+  <canvas id="seq-canvas"></canvas>
 
   <!-- ============================================================ -->
   <!-- CINEMATIC DIRECTOR TOUR HUD                                   -->
@@ -730,6 +728,6 @@
     </div>
   </div>
 
-  <script defer src="landing.js?v=2026.11.14.bg"></script>
+  <script defer src="landing.js"></script>
 </body>
 </html>

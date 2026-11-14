@@ -184,21 +184,8 @@ html.lenis, html.lenis body {
   .pre-fps-badge{display:none}
 }
 
-/* ── BACKGROUND VIDEO & CANVAS ─────────────────────────────── */
-.bg-video{
-  position:fixed;top:0;left:0;
-  width:100vw;height:100vh;
-  object-fit:cover;
-  object-position:center center;
-  z-index:0;
-  pointer-events:none;
-  background:#030508;
-  opacity:0.92;
-  filter:contrast(1.05) brightness(0.95);
-  transform:translateZ(0);
-}
+/* ── FIXED CANVAS ──────────────────────────────────────────── */
 #seq-canvas{
-  display:none!important;
   position:fixed;top:0;left:0;
   width:100vw;height:100vh;
   z-index:0;
