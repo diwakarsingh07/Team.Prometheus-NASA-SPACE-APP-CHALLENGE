@@ -11,11 +11,11 @@ body{
   background:#030508;
   color:rgba(255,255,255,.6);
   overflow-x:hidden;
-  cursor:none;
+  cursor:default;
   line-height:1.6;
 }
-a{color:inherit;text-decoration:none}
-button{background:none;border:none;color:inherit;cursor:none;font-family:inherit}
+a{color:inherit;text-decoration:none;cursor:pointer}
+button{background:none;border:none;color:inherit;cursor:pointer;font-family:inherit}
 ul{list-style:none}
 img,video,canvas{display:block}
 .hidden{display:none!important}
@@ -39,28 +39,29 @@ html.lenis, html.lenis body {
 
 /* ── CUSTOM CURSOR (GPU COMPOSITED - ZERO REFLOW) ──────────── */
 .cur{
-  position:fixed;top:0;left:0;width:8px;height:8px;border-radius:50%;
+  position:fixed;top:0;left:0;width:6px;height:6px;border-radius:50%;
   background:#00e5ff;
+  box-shadow:0 0 10px #00e5ff;
   pointer-events:none;z-index:10000;
   transform:translate3d(-50%,-50%,0);
   will-change:transform;
-  mix-blend-mode:difference;
   opacity:0;
   transition:width .15s,height .15s,background .15s,opacity .2s;
 }
 .cur.active{opacity:1}
-.cur.hover{width:14px;height:14px;background:#ffb300}
+.cur.hover{width:10px;height:10px;background:#ffb300;box-shadow:0 0 12px #ffb300}
 .cur-ring{
-  position:fixed;top:0;left:0;width:42px;height:42px;border-radius:50%;
-  border:1.5px solid rgba(0,229,255,.35);
+  position:fixed;top:0;left:0;width:38px;height:38px;border-radius:50%;
+  border:1.5px solid rgba(0,229,255,.5);
+  box-shadow:0 0 14px rgba(0,229,255,.25);
   pointer-events:none;z-index:9999;
   transform:translate3d(-50%,-50%,0);
   will-change:transform;
   opacity:0;
-  transition:width .25s ease-out,height .25s ease-out,border-color .25s,opacity .2s;
+  transition:width .2s ease-out,height .2s ease-out,border-color .2s,opacity .2s,box-shadow .2s;
 }
 .cur-ring.active{opacity:1}
-.cur-ring.hover{width:60px;height:60px;border-color:rgba(255,179,0,.4)}
+.cur-ring.hover{width:54px;height:54px;border-color:rgba(255,179,0,.8);box-shadow:0 0 20px rgba(255,179,0,.4)}
 
 /* ── PRELOADER (3D ROCKET ASSEMBLY & LAUNCH) ────────────────── */
 .preloader{

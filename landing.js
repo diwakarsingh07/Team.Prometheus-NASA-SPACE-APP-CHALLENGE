@@ -560,35 +560,35 @@ document.addEventListener('mousemove', e => {
     cursorActive = true;
     cx = rx = mx;
     cy = ry = my;
-    cur.classList.add('active');
-    curRing.classList.add('active');
+    if (cur) cur.classList.add('active');
+    if (curRing) curRing.classList.add('active');
   }
 });
 
 function cursorTick() {
-  cx += (mx - cx) * 0.2;
-  cy += (my - cy) * 0.2;
-  rx += (mx - rx) * 0.08;
-  ry += (my - ry) * 0.08;
-  cur.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
-  curRing.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
+  cx += (mx - cx) * 0.25;
+  cy += (my - cy) * 0.25;
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  if (cur) cur.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
+  if (curRing) curRing.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
   requestAnimationFrame(cursorTick);
 }
 requestAnimationFrame(cursorTick);
 
-// Hover states
+// Hover states with .closest() for nested spans/icons
 document.addEventListener('mouseover', e => {
-  const t = e.target;
-  if (t.matches('a,button,.mode-card,.rc-b,.btn,input')) {
-    cur.classList.add('hover');
-    curRing.classList.add('hover');
+  const target = e.target.closest('a, button, .mode-card, .rc-b, .btn, input, .nav-item, .chip');
+  if (target) {
+    if (cur) cur.classList.add('hover');
+    if (curRing) curRing.classList.add('hover');
   }
 });
 document.addEventListener('mouseout', e => {
-  const t = e.target;
-  if (t.matches('a,button,.mode-card,.rc-b,.btn,input')) {
-    cur.classList.remove('hover');
-    curRing.classList.remove('hover');
+  const target = e.target.closest('a, button, .mode-card, .rc-b, .btn, input, .nav-item, .chip');
+  if (target) {
+    if (cur) cur.classList.remove('hover');
+    if (curRing) curRing.classList.remove('hover');
   }
 });
 
